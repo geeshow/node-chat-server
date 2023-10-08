@@ -1,0 +1,23 @@
+{
+  "name": "node-chat-server",
+  "version": "1.0.0",
+  "description": "simple chat server",
+  "main": "src/app.ts",
+  "scripts": {
+    "start": "ts-node src/app.ts",
+    "product": "node app.js"
+  },
+  "author": "ken2484@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1",
+    "ws": "^8.14.2",
+    "yarn": "^1.22.19"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.6",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}
