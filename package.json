@@ -8,10 +8,8 @@
     "product": "node app.js"
   },
   "author": "ken2484@gmail.com",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
-    "winston": "^3.11.0",
-    "winston-daily-rotate-file": "^4.7.1",
     "ws": "^8.14.2",
     "yarn": "^1.22.19"
   },
