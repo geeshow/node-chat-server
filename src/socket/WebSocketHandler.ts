@@ -1,14 +1,14 @@
 import {WebSocket} from "ws";
-import MessageHandler from "./MessageHandler";
+import MessageController from "../controller/MessageController";
 
-class ClientSocket {
+class WebSocketHandler {
     private ws: WebSocket;
-    private messageHandler: MessageHandler;
+    private messageController: MessageController;
 
     constructor(ws: WebSocket) {
         console.log('Client connected');
         this.ws = ws;
-        this.messageHandler = new MessageHandler(this);
+        this.messageController = new MessageController(this);
 
         this.ws.on('message', this.receiveMessage.bind(this));
         this.ws.on('close', this.handleClose.bind(this));
@@ -28,11 +28,22 @@ class ClientSocket {
     }
 
     private receiveMessage(message: string): void {
-        const parsedMessage = JSON.parse(message);
-        if (parsedMessage.type) {
-            this.messageHandler.receiveMessage(parsedMessage.type, parsedMessage.payload);
-        } else {
-            console.warn('Invalid message format:', message);
+        try {
+            const parsedMessage = JSON.parse(message);
+            if (parsedMessage.type) {
+                this.messageController.receiveMessage(parsedMessage.type, parsedMessage.payload)
+                    .then((result) => {
+                        console.log('result', result)
+                    })
+                    .catch((e) => {
+                        console.error(e);
+                        this.sendMessage('error', e)
+                    });
+            } else {
+                console.warn('Invalid message format:', message);
+            }
+        } catch (e) {
+            console.error(e);
         }
     }
 
@@ -45,4 +56,4 @@ class ClientSocket {
     }
 }
 
-export = ClientSocket;
+export = WebSocketHandler;

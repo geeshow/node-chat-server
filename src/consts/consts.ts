@@ -31,13 +31,11 @@ const CHANNEL_DATA = {
 
 const ERRORS = {
   COMMON_ERROR: {
-    code: 'Q000',
-    message: ''
+    code: 'E000'
   },
-  OUT: 'OUT',
-  INVITED: 'INVITED',
-  READY: 'READY',
-  DENY: 'DENY',
+  EXIST_USER_ID: {
+    code: 'E001'
+  }
 }
 
 const GROUPS = {
