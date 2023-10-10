@@ -8,11 +8,11 @@ export interface User extends BaseEntity {
     lastLogin: Date;
 }
 
-const userList: Map<string, User> = new Map();
+const dataList: Map<string, User> = new Map();
 
 export class UserRepository extends MapRepository<User> {
     constructor() {
-        super(userList);
+        super(dataList);
     }
 
 }

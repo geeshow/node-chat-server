@@ -1,8 +1,11 @@
 import {WebSocket} from "ws";
 import {USER_STATUS} from "../consts/consts";
 import WebSocketHandler from "../socket/WebSocketHandler";
-import UserService from "../service/user/UserService";
-import {RequestLogin} from "./UserDto";
+import UserService from "../service/UserService";
+import {RequestLogin, ResponseLogin} from "../dto/UserDto";
+import {User} from "../repository/UserRepository";
+import ChannelService from "../service/ChannelService";
+import {RequestCreate} from "../dto/ChannelDto";
 
 class MessageController {
     private clientSocket: WebSocketHandler;
@@ -13,6 +16,8 @@ class MessageController {
     private userStatus: string;
     private pingTime: number = 0;
     private userService: UserService = new UserService()
+    private channelService: ChannelService = new ChannelService()
+    private myInfo: User | null = null;
 
     constructor(clientSocket: WebSocketHandler) {
         this.clientSocket = clientSocket
@@ -22,17 +27,27 @@ class MessageController {
 
     public async receiveMessage(type: string, payload: any = null) {
         switch (type) {
-            case 'ping':
-                this.receivePing();
+            case 'Ping':
+                this.sendMessage('PONG')
                 break;
-            case 'pong':
-                this.receivePong();
+            case 'Pong':
+                this.missedPongs = 0;
+                console.log(`Received pong. ${Date.now() - this.pingTime}ms`)
                 break;
             case 'LoginUser':
-                await this.receiveLoginUser(type, payload);
+                const loginUserInfo = await this.userService.loginUser(payload as RequestLogin);
+                this.myInfo = loginUserInfo;
+                this.sendMessage(type, loginUserInfo as ResponseLogin)
                 break;
             case 'MyInfo':
-                await this.receiveMyInfo(type);
+                this.sendMessage(type, this.myInfo)
+                break;
+            case 'CreateChannel':
+                await this.channelService.createChannel(this.myInfo, payload as RequestCreate);
+                break;
+            case 'ChannelList':
+                const result = await this.channelService.getAllChannelList();
+                this.sendMessage(type, result)
                 break;
             default:
                 console.warn(`Unknown message type: ${type}`);
@@ -53,27 +68,6 @@ class MessageController {
         console.log(`Ping sent. Missed pongs: ${this.missedPongs}`)
     }
 
-    private receivePing(): void {
-        this.sendMessage('PONG')
-    }
-
-    private receivePong(): void {
-        this.missedPongs = 0;
-        console.log(`Received pong. ${Date.now() - this.pingTime}ms`)
-    }
-
-    private async receiveLoginUser(type: string, payload: RequestLogin) {
-        if (payload === null)
-            throw new Error('payload is null')
-
-        const result = await this.userService.receiveLoginUser(payload);
-        this.sendMessage(type, result)
-    }
-
-    private async receiveMyInfo(type: string) {
-        const result = await this.userService.getMyInfo();
-        this.sendMessage(type, result)
-    }
 
     private startPingPongChecker(): void {
         this.pingInterval = setInterval(() => {

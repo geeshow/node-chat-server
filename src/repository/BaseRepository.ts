@@ -33,4 +33,13 @@ export class MapRepository<T> {
         }
         return data as T;
     }
+
+    async listAll(): Promise<Array<T>> {
+        const entries = this.list.entries()
+        const result = []
+        for (const [key, value] of entries) {
+            result.push(value)
+        }
+        return result
+    }
 }

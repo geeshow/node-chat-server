@@ -1,35 +1,43 @@
-import {RequestLogin} from "../../controller/UserDto";
-import {User, UserRepository} from "../../Repository/UserRepository";
+import {RequestLogin, ResponseLogin, ResponseMyInfo} from "../dto/UserDto";
+import {User, UserRepository} from "../repository/UserRepository";
+import {UserAuth, UserAuthRepository} from "../repository/UserAuthRepository";
 
 
 
 class UserService {
     userRepository: UserRepository = new UserRepository();
-    myInfo: User | undefined;
+    userAuthRepository: UserAuthRepository = new UserAuthRepository();
 
-    public async receiveLoginUser(payload: RequestLogin) {
+    public async loginUser(payload: RequestLogin) {
+        if (payload === null)
+            throw new Error('payload is null')
+
+        const userAuth = await this.userAuthRepository.findOneById(payload.id)
         const user = await this.userRepository.findOneById(payload.id)
-        if (user) {
-            if (user.password === payload.password) {
+
+        if (userAuth && user) {
+            if (userAuth.password === payload.password) {
                 user.lastLogin = new Date();
-                this.myInfo = user;
+                return user;
+            } else {
+                throw new Error('Wrong password');
             }
         } else {
-            const newUser = {
+            const newUserAuth = {
                 id: payload.id,
                 password: payload.password,
+            } as UserAuth
+            await this.userAuthRepository.create(newUserAuth);
+
+            const newUser = {
+                id: payload.id,
                 emoji: getRandomEmoji(),
                 nickname: 'guest',
                 lastLogin: new Date()
             } as User
             await this.userRepository.create(newUser);
-            this.myInfo = newUser;
+            return newUser
         }
-        return this.myInfo;
-    }
-
-    public async getMyInfo() {
-        return this.myInfo;
     }
 }
 
