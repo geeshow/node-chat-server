@@ -5,7 +5,7 @@ import {RequestJoinChannel} from "../dto/ChannelDto";
 export interface MessageItem {
     id: string;
     type: string;
-    data: string;
+    content: string;
     userId: string;
     date: Date;
 }
@@ -21,7 +21,7 @@ export class ChannelMessageRepository extends MapRepository<ChannelMessage> {
         super(list);
     }
 
-    public async createMessage(payload: {channelId: string, type: string, data: string, userId: string}) {
+    public async createMessage(payload: {channelId: string, type: string, content: string, userId: string}) {
         const channelMessage = await this.findOneById(payload.channelId)
         if (!channelMessage) {
             throw new Error('Channel not found')
@@ -30,7 +30,7 @@ export class ChannelMessageRepository extends MapRepository<ChannelMessage> {
         const newMessage = {
             id: payload.channelId + Date.now(),
             type: payload.type,
-            data: payload.data,
+            content: payload.content,
             userId: payload.userId,
             date: new Date(),
         } as MessageItem

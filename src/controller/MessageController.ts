@@ -1,13 +1,17 @@
-import {WebSocket} from "ws";
 import {USER_STATUS} from "../consts/consts";
 import WebSocketHandler from "../socket/WebSocketHandler";
 import UserService from "../service/UserService";
 import {RequestLogin, ResponseUserInfo} from "../dto/UserDto";
 import {User} from "../repository/UserRepository";
 import ChannelService from "../service/ChannelService";
-import {RequestCreateChannel, RequestSendMessageChannel, RequestViewChannel, ResponseChannel} from "../dto/ChannelDto";
+import {
+    RequestCreateChannel,
+    RequestJoinChannel,
+    RequestLeaveChannel,
+    RequestSendMessageChannel,
+    RequestViewChannel
+} from "../dto/ChannelDto";
 import ChannelMessageService from "../service/ChannelMessageService";
-import {ChannelRepository} from "../repository/ChannelRepository";
 
 const connectionUserList: Map<string, MessageController> = new Map();
 
@@ -27,7 +31,7 @@ class MessageController {
     constructor(clientSocket: WebSocketHandler) {
         this.clientSocket = clientSocket
         this.userStatus = USER_STATUS.CONNECTED;
-        this.startPingPongChecker();
+        // this.startPingPongChecker();
     }
 
     public async receiveMessage(type: string, payload: any = null) {
@@ -78,9 +82,20 @@ class MessageController {
                     await this.channelService.getChannelWithUserList(payload as RequestViewChannel)
                 );
                 break;
-            case 'ChannelEnter':
+            case 'ChannelJoin':
+                await this.channelService.joinChannel(this.myInfo, payload as RequestJoinChannel);
+                const joinChannelMessage = await this.channelMessageService.joinChannelMessage(this.myInfo!, payload as RequestJoinChannel);
+
+                await this.broadcastInChannel(type, payload.channelId, joinChannelMessage)
                 break;
             case 'ChannelLeave':
+                await this.channelService.leaveChannel(this.myInfo, payload as RequestLeaveChannel);
+                const leaveChannelMessage = await this.channelMessageService.leaveChannelMessage(this.myInfo!, payload as RequestJoinChannel);
+
+                await this.broadcastInChannel(type, payload.channelId, leaveChannelMessage)
+                this.sendMessage(type,
+                    await this.channelService.getChannelWithUserList(payload as RequestLeaveChannel)
+                );
                 break;
             case 'ChannelSendMessage':
                 const newMessage = await this.channelMessageService.addMessageChannel(this.myInfo, payload as RequestSendMessageChannel);

@@ -6,7 +6,6 @@ import {
 } from "../dto/ChannelDto";
 import {User} from "../repository/UserRepository";
 import {ChannelMessage, ChannelMessageRepository} from "../repository/ChannelMessageRepository";
-import config from "../config.json";
 import {ResponseUserInfo} from "../dto/UserDto";
 
 
@@ -19,7 +18,7 @@ class ChannelService {
             message: [{
                 id: channelId + Date.now(),
                 type: 'CREATE_CHANNEL',
-                data: `${user.emoji} ${user.nickname} has created the channel`,
+                content: `${user.emoji} ${user.nickname} has created the channel`,
                 userId: user.id,
             }]
         } as ChannelMessage
@@ -28,15 +27,19 @@ class ChannelService {
     }
 
     public async joinChannelMessage(user: User, payload: RequestJoinChannel) {
-        await this.channelMessageRepository.createMessage({
+        const joinMessage = {
             channelId: payload.channelId,
             type: 'JOIN_CHANNEL',
-            data: `${user.emoji} ${user.nickname} has joined the channel`,
+            content: `${user.emoji} ${user.nickname} has joined the channel`,
             userId: user.id,
-        })
+        }
+        await this.channelMessageRepository.createMessage(joinMessage)
+        return joinMessage
+    }
+    public async getMessageListAtJoin(channelId: string, limit: number) {
         return this.channelMessageRepository.lastMessage({
-            channelId: payload.channelId,
-            limit: config.messageSize,
+            channelId: channelId,
+            limit: limit
         })
     }
 
@@ -44,7 +47,7 @@ class ChannelService {
         await this.channelMessageRepository.createMessage({
             channelId: payload.channelId,
             type: 'LEAVE_CHANNEL',
-            data: `${user.emoji} ${user.nickname} has left the channel`,
+            content: `${user.emoji} ${user.nickname} has left the channel`,
             userId: user.id,
         })
     }
@@ -56,7 +59,7 @@ class ChannelService {
         const newMessage = await this.channelMessageRepository.createMessage({
             channelId: payload.channelId,
             type: 'MESSAGE',
-            data: payload.message,
+            content: payload.message,
             userId: user.id,
         })
 
