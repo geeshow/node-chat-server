@@ -1,4 +1,4 @@
-import {RequestLogin, ResponseLogin, ResponseMyInfo} from "../dto/UserDto";
+import {RequestLogin, ResponseLogin, ResponseUserInfo} from "../dto/UserDto";
 import {User, UserRepository} from "../repository/UserRepository";
 import {UserAuth, UserAuthRepository} from "../repository/UserAuthRepository";
 

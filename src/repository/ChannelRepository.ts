@@ -4,8 +4,8 @@ import {User} from "./UserRepository";
 export interface Channel extends BaseEntity {
     id: string;
     title: string;
-    userList: User[];
-    host: User;
+    userIdList: string[];
+    hostUserId: string;
 }
 
 const userList: Map<string, Channel> = new Map();

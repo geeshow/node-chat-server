@@ -8,7 +8,7 @@ export interface ResponseLogin {
     nickname: string;
     lastLogin: Date;
 }
-export interface ResponseMyInfo {
+export interface ResponseUserInfo {
     id: string;
     emoji: string;
     nickname: string;

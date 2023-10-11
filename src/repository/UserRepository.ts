@@ -2,7 +2,6 @@ import {BaseEntity, MapRepository} from "./BaseRepository";
 
 export interface User extends BaseEntity {
     id: string;
-    password: string;
     emoji: string;
     nickname: string;
     lastLogin: Date;
