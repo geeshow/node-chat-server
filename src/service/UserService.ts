@@ -1,4 +1,4 @@
-import {RequestLogin, ResponseLogin, ResponseUserInfo} from "../dto/UserDto";
+import {RequestChangeUser, RequestLogin, RequestSignup, ResponseLogin, ResponseUserInfo} from "../dto/UserDto";
 import {User, UserRepository} from "../repository/UserRepository";
 import {UserAuth, UserAuthRepository} from "../repository/UserAuthRepository";
 
@@ -8,6 +8,32 @@ class UserService {
     userRepository: UserRepository = new UserRepository();
     userAuthRepository: UserAuthRepository = new UserAuthRepository();
 
+    public async signupUser(payload: RequestSignup) {
+        if (payload === null)
+            throw new Error('payload is null')
+
+        const userAuth = await this.userAuthRepository.findOneById(payload.id)
+        const user = await this.userRepository.findOneById(payload.id)
+
+        if (userAuth && user) {
+            throw new Error('User already exists');
+        } else {
+            const newUserAuth = {
+                id: payload.id,
+                password: payload.password,
+            } as UserAuth
+            await this.userAuthRepository.create(newUserAuth);
+
+            const newUser = {
+                id: payload.id,
+                emoji: getRandomEmoji(),
+                nickname: payload.id,
+                lastLogin: new Date()
+            } as User
+            await this.userRepository.create(newUser);
+            return newUser
+        }
+    }
     public async loginUser(payload: RequestLogin) {
         if (payload === null)
             throw new Error('payload is null')
@@ -23,20 +49,15 @@ class UserService {
                 throw new Error('Wrong password');
             }
         } else {
-            const newUserAuth = {
-                id: payload.id,
-                password: payload.password,
-            } as UserAuth
-            await this.userAuthRepository.create(newUserAuth);
-
-            const newUser = {
-                id: payload.id,
-                emoji: getRandomEmoji(),
-                nickname: 'guest',
-                lastLogin: new Date()
-            } as User
-            await this.userRepository.create(newUser);
-            return newUser
+            throw new Error('User does not exist');
+        }
+    }
+    public async changeUser(user: User, payload: RequestChangeUser) {
+        if (user) {
+            user.nickname = payload.nickname
+            user.emoji = payload.emoji
+        } else {
+            throw new Error('User does not exist');
         }
     }
 }

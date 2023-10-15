@@ -1,5 +1,6 @@
 import {WebSocket} from "ws";
 import MessageController from "../controller/MessageController";
+import {RequestDto} from "../dto/WebMessageDto";
 
 class WebSocketHandler {
     private ws: WebSocket;
@@ -29,7 +30,7 @@ class WebSocketHandler {
 
     private receiveMessage(message: string): void {
         try {
-            const parsedMessage = JSON.parse(message);
+            const parsedMessage = JSON.parse(message) as RequestDto;
             if (parsedMessage.type) {
                 this.messageController.receiveMessage(parsedMessage.type, parsedMessage.payload)
                     .then((result) => {
@@ -37,7 +38,7 @@ class WebSocketHandler {
                     })
                     .catch((e) => {
                         console.error(e);
-                        this.sendMessage('error', e)
+                        this.sendMessage('error', {message: e.message})
                     });
             } else {
                 console.warn('Invalid message format:', message);

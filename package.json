@@ -4,8 +4,9 @@
   "description": "simple chat server",
   "main": "src/app.ts",
   "scripts": {
-    "start": "ts-node src/app.ts",
-    "product": "node app.js"
+    "client": "cd chat-client && npm start",
+    "server": "ts-node src/app.ts",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "author": "ken2484@gmail.com",
   "license": "MIT",
@@ -15,6 +16,7 @@
   },
   "devDependencies": {
     "@types/ws": "^8.5.6",
+    "concurrently": "^8.2.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   }

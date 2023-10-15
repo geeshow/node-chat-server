@@ -1,18 +1,18 @@
 import {ResponseUserInfo} from "./UserDto";
 
 export interface RequestCreateChannel {
-    title: string;
+    channelName: string;
 }
 
 export interface ResponseChannel {
     id: string;
-    title: string;
+    channelName: string;
     host: ResponseUserInfo;
 }
 
 export interface ResponseMyList {
     id: string;
-    title: string;
+    channelName: string;
     userList: ChannelUserInfo[];
     host: ChannelUserInfo;
 }
@@ -39,7 +39,7 @@ export interface RequestSendMessageChannel {
     message: string;
 }
 
-export interface RequestLastMessageChannel {
+export interface RequestMessageChannel {
     channelId: string;
     fromMessageId: string;
 }

@@ -26,7 +26,7 @@ class ChannelService {
         } else {
             const newChannel = {
                 id: channelId,
-                title: payload.title,
+                channelName: payload.channelName,
                 hostUserId: myInfo.id,
                 userIdList: [myInfo.id],
             } as Channel
@@ -75,7 +75,7 @@ class ChannelService {
             }
             result.push({
                 id: channel.id,
-                title: channel.title,
+                channelName: channel.channelName,
                 host: host as ResponseUserInfo
             })
         }
@@ -103,7 +103,7 @@ class ChannelService {
         return {
             channel: {
                 id: channel.id,
-                title: channel.title,
+                channelName: channel.channelName,
                 host: host as ResponseUserInfo
             } as ResponseChannel,
             userList: userList as ResponseUserInfo[]

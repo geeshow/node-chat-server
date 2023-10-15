@@ -1,12 +1,17 @@
+export interface RequestSignup {
+    id: string;
+    password: string;
+}
 export interface RequestLogin {
     id: string;
     password: string;
 }
-export interface ResponseLogin {
-    id: string;
+export interface RequestChangeUser {
     emoji: string;
     nickname: string;
-    lastLogin: Date;
+}
+export interface ResponseLogin {
+    user: ResponseUserInfo;
 }
 export interface ResponseUserInfo {
     id: string;

@@ -1,17 +1,18 @@
 import {USER_STATUS} from "../consts/consts";
 import WebSocketHandler from "../socket/WebSocketHandler";
 import UserService from "../service/UserService";
-import {RequestLogin, ResponseUserInfo} from "../dto/UserDto";
+import {RequestChangeUser, RequestLogin, RequestSignup, ResponseUserInfo} from "../dto/UserDto";
 import {User} from "../repository/UserRepository";
 import ChannelService from "../service/ChannelService";
 import {
     RequestCreateChannel,
     RequestJoinChannel,
-    RequestLeaveChannel,
+    RequestLeaveChannel, RequestMessageChannel,
     RequestSendMessageChannel,
     RequestViewChannel
 } from "../dto/ChannelDto";
 import ChannelMessageService from "../service/ChannelMessageService";
+import config from "../../config.json";
 
 const connectionUserList: Map<string, MessageController> = new Map();
 
@@ -37,28 +38,29 @@ class MessageController {
     public async receiveMessage(type: string, payload: any = null) {
         switch (type) {
             case 'Ping':
-            case 'Pong':
-            case 'LoginUser':
-                break;
-            default:
-                if(this.myInfo === null) {
-                    throw new Error('myInfo is null')
-                }
-        }
-
-        switch (type) {
-            case 'Ping':
                 this.sendMessage('PONG')
                 break;
             case 'Pong':
                 this.missedPongs = 0;
                 console.log(`Received pong. ${Date.now() - this.pingTime}ms`)
                 break;
+            case 'SignupUser':
+                const signupUserInfo = await this.userService.signupUser(payload as RequestSignup);
+                this.myInfo = signupUserInfo;
+                connectionUserList.set(signupUserInfo.id, this);
+                this.sendMessage(type, { user: signupUserInfo as ResponseUserInfo })
+                break;
             case 'LoginUser':
                 const loginUserInfo = await this.userService.loginUser(payload as RequestLogin);
                 this.myInfo = loginUserInfo;
                 connectionUserList.set(loginUserInfo.id, this);
                 this.sendMessage(type, { user: loginUserInfo as ResponseUserInfo })
+                break;
+            case 'ChangeUser':
+                if (this.myInfo === null)
+                    throw new Error('myInfo is null')
+                await this.userService.changeUser(this.myInfo, payload as RequestChangeUser);
+                this.sendMessage(type, { user: this.myInfo as ResponseUserInfo })
                 break;
             case 'MyInfo':
                 this.sendMessage(type, { user: this.myInfo } )
@@ -101,7 +103,10 @@ class MessageController {
                 const newMessage = await this.channelMessageService.addMessageChannel(this.myInfo, payload as RequestSendMessageChannel);
                 await this.broadcastInChannel(type, payload.channelId, newMessage)
                 break;
-            case 'ChannelMessage':
+            case 'ChannelGetMessage':
+                this.sendMessage(type,
+                    await this.channelMessageService.getMessageFrom(payload as RequestMessageChannel, config.messageSize)
+                );
                 break;
             default:
                 console.warn(`Unknown message type: ${type}`);

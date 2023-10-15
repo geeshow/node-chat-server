@@ -1,7 +1,7 @@
 import {
     RequestCreateChannel,
     RequestJoinChannel,
-    RequestLeaveChannel,
+    RequestLeaveChannel, RequestMessageChannel,
     RequestSendMessageChannel
 } from "../dto/ChannelDto";
 import {User} from "../repository/UserRepository";
@@ -36,9 +36,10 @@ class ChannelService {
         await this.channelMessageRepository.createMessage(joinMessage)
         return joinMessage
     }
-    public async getMessageListAtJoin(channelId: string, limit: number) {
-        return this.channelMessageRepository.lastMessage({
-            channelId: channelId,
+    public async getMessageFrom(payload: RequestMessageChannel, limit: number) {
+        return this.channelMessageRepository.nextMessage({
+            channelId: payload.channelId,
+            fromMessageId: payload.fromMessageId,
             limit: limit
         })
     }
