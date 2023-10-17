@@ -1,34 +1,37 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import styled from 'styled-components';
+import {useNavigate} from "react-router-dom";
 
-const StyledButton = styled.button<{ $isActive: boolean }>`
-  padding: 10px;
-  margin-bottom: 10px;
-  margin-right: 10px;
-  border: ${props => props.$isActive ? '1px solid #ddd' : '0px solid #ddd'};
-  border-radius: 4px;
-  font-size: 16px;
-  background-color: ${props => props.$isActive ? '#007bff' : 'initial'};
-  color: ${props => props.$isActive ? 'white' : 'initial'};
-`;
+
 interface TopMenuProps {
     currentPath: string;
 }
 const TopMenu: React.FC<TopMenuProps> = ({ currentPath }) => {
+    const navigate = useNavigate();
+
+    const movePage = (path: string) => () => {
+        navigate(path)
+    }
 
     return (
-        <div className='app-top-frame'>
-            <Link to="/">
-                <StyledButton $isActive={currentPath === "/"}>My Info</StyledButton>
-            </Link>
-            <Link to="/channels">
-                <StyledButton $isActive={currentPath === "/channels"}>Channels</StyledButton>
-            </Link>
-            <Link to="/my-channels">
-                <StyledButton $isActive={currentPath === "/my-channels"}>My Channels</StyledButton>
-            </Link>
-        </div>
+        <nav className="py-4 px-6 text-sm font-medium">
+            <ul className="flex space-x-3">
+                <li>
+                    <button className={`block px-3 py-2 rounded-md ${currentPath === "/" ? 'bg-sky-500 text-white' : 'bg-slate-50'}`}
+                            onClick={movePage('/')}
+                    >My Info</button>
+                </li>
+                <li>
+                    <button className={`block px-3 py-2 rounded-md ${currentPath === "/channels" ? 'bg-sky-500 text-white' : 'bg-slate-50'}`}
+                            onClick={movePage('/channels')}
+                    >Channels</button>
+                </li>
+                <li>
+                    <button className={`block px-3 py-2 rounded-md ${currentPath === "/my-channels" ? 'bg-sky-500 text-white' : 'bg-slate-50'}`}
+                            onClick={movePage('/my-channels')}
+                    >My Channels</button>
+                </li>
+            </ul>
+        </nav>
     );
 }
 

@@ -5,6 +5,7 @@ import config from "./config.json";
 import MyInfo from "./pages/MyInfo";
 import {WebSocketProvider} from "./WebSocketProvider";
 import {RecoilRoot} from "recoil";
+import MyInfoChange from "./pages/MyInfoChange";
 
 const WS_URL = 'ws://localhost:' + config.port;  // 실제 WebSocket 서버 주소를 넣어주세요.
 
@@ -17,6 +18,8 @@ function App() {
                         <Suspense fallback={<div>Loading...</div>}>
                             <Routes>
                                 <Route path="/" element={<MyInfo/>}/>
+                                <Route path="/my-info" element={<MyInfo/>}/>
+                                <Route path="/my-info/change" element={<MyInfoChange/>}/>
                                 {/* 여기에 다른 경로를 추가하세요 */}
                             </Routes>
                         </Suspense>

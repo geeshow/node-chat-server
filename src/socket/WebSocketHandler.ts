@@ -44,7 +44,7 @@ class WebSocketHandler {
                 console.warn('Invalid message format:', message);
             }
         } catch (e) {
-            console.error(e);
+            console.log(e);
         }
     }
 

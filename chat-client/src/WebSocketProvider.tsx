@@ -59,6 +59,10 @@ export const WebSocketProvider = ({ host, children }: any) => {
             else if (receivedData.type === "ChangeUser") {
                 const response = receivedData.payload as ResponseLogin;
                 setUser(response.user);
+                alert("Change user info success");
+            }
+            else if (receivedData.type === "error") {
+                alert(receivedData.payload.message);
             }
         };
 
@@ -173,81 +177,6 @@ export const WebSocketProvider = ({ host, children }: any) => {
         }
     } as WebSocketContextType
 
-
-    const response = {
-        Ping: () => {
-            sendMessage({
-                type: "Pong",
-                payload: null
-            });
-        },
-        LoginUser: (id: string, password: string) => {
-            sendMessage({
-                type: "LoginUser",
-                payload: {
-                    id, password
-                } as RequestLogin
-            });
-        },
-        MyInfo: () => {
-            sendMessage({
-                type: "MyInfo",
-                payload: null
-            });
-        },
-        ChannelCreate: (channelName: string) => {
-            sendMessage({
-                type: "ChannelCreate",
-                payload: {
-                    channelName
-                } as RequestCreateChannel
-            });
-        },
-        ChannelList: () => {
-            sendMessage({
-                type: "ChannelList",
-                payload: null
-            });
-        },
-        ChannelView: (channelId: string) => {
-            sendMessage({
-                type: "ChannelView",
-                payload: {
-                    channelId
-                } as RequestViewChannel
-            });
-        },
-        ChannelJoin: (channelId: string) => {
-            sendMessage({
-                type: "ChannelJoin",
-                payload: {
-                    channelId
-                } as RequestJoinChannel
-            });
-        },
-        ChannelLeave: (channelId: string) => {
-            sendMessage({
-                type: "ChannelLeave",
-                payload: {
-                    channelId
-                } as RequestLeaveChannel
-            });
-        },
-        ChannelSendMessage: (channelId: string, message: string) => {
-            sendMessage({
-                type: "ChannelSendMessage",
-                payload: {
-                    channelId, message
-                } as RequestSendMessageChannel
-            });
-        },
-        ChannelGetMessage(channelId: string) {
-            sendMessage({
-                type: "ChannelGetMessage",
-                payload: null
-            });
-        }
-    } as WebSocketContextType
     return (
         <WebSocketContext.Provider value={request}>
             {children}

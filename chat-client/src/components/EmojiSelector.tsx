@@ -23,14 +23,6 @@ const EmojiSelector = ({ onSelect }: any) => {
         // [0x1F30D, 0x1F567]  // Miscellaneous Symbols And Pictographs
     ];
 
-    const tabNames = [
-        "Emoticons",
-        // "Transport & Map",
-        // "Additional Emoticons",
-        // "Additional Transport & Map",
-        // "Miscellaneous Symbols"
-    ];
-
     const renderEmojis = () => {
         let emojis = [];
         const range = emojiRanges[activeTab];
@@ -41,7 +33,7 @@ const EmojiSelector = ({ onSelect }: any) => {
                     role="img"
                     aria-label="emoji"
                     onClick={() => onSelect(String.fromCodePoint(i))}
-                    style={{cursor: 'pointer', padding: '2px', fontSize: '24px'}}
+                    style={{cursor: 'pointer', padding: '2px', fontSize: '24px', height: '28px'}}
                 >
                     {String.fromCodePoint(i)}
                 </span>
@@ -49,22 +41,9 @@ const EmojiSelector = ({ onSelect }: any) => {
         }
         return emojis;
     };
-
     return (
         <div>
-            <TabMenu>
-                {tabNames.map((name, index) => (
-                    <TabMenuItem
-                        key={index}
-                        $active={index === activeTab}
-                        onClick={() => setActiveTab(index)}>
-                        {name}
-                    </TabMenuItem>
-                ))}
-            </TabMenu>
-            <div>
-                {renderEmojis()}
-            </div>
+            {renderEmojis()}
         </div>
     );
 };
