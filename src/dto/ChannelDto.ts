@@ -4,6 +4,9 @@ export interface RequestCreateChannel {
     channelName: string;
 }
 
+export interface ResponseChannelList {
+    channelList: ResponseChannel[];
+}
 export interface ResponseChannel {
     id: string;
     channelName: string;

@@ -3,7 +3,7 @@ import {
     RequestJoinChannel,
     RequestLeaveChannel,
     RequestViewChannel,
-    ResponseChannel
+    ResponseChannel, ResponseChannelList
 } from "../dto/ChannelDto";
 import {Channel, ChannelRepository} from "../repository/ChannelRepository";
 import {User, UserRepository} from "../repository/UserRepository";
@@ -79,7 +79,7 @@ class ChannelService {
                 host: host as ResponseUserInfo
             })
         }
-        return { channelList: result as ResponseChannel[] }
+        return { channelList: result as ResponseChannel[] } as ResponseChannelList
     }
     public async getChannelWithUserList(payload: RequestViewChannel) {
         const channel = await this.channelRepository.findOneById(payload.channelId)

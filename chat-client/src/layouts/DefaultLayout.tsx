@@ -1,10 +1,20 @@
-import React, {ReactNode, Suspense} from 'react';
-import {Route, Routes, useLocation} from "react-router-dom";
+import React, {ReactNode, Suspense, useEffect} from 'react';
+import {Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import MyInfo from "../pages/MyInfo";
 import TopMenu from "../components/TopMenu";
+import {useRecoilValue} from "recoil";
+import {isLoginState} from "../store/recoilState";
 
 function DefaultLayout(parent: { children: ReactNode }) {
     const location = useLocation();
+    const navigate = useNavigate();
+    const isLogin = useRecoilValue(isLoginState);
+
+    useEffect(() => {
+        if (!isLogin && location.pathname !== '/') {
+            navigate('/');
+        }
+    }, []);
 
     return (
         <div>

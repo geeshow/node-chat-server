@@ -9,7 +9,7 @@ import {
     RequestJoinChannel,
     RequestLeaveChannel, RequestMessageChannel,
     RequestSendMessageChannel,
-    RequestViewChannel
+    RequestViewChannel, ResponseChannelList
 } from "../dto/ChannelDto";
 import ChannelMessageService from "../service/ChannelMessageService";
 import config from "../../config.json";
@@ -65,6 +65,11 @@ class MessageController {
             case 'MyInfo':
                 this.sendMessage(type, { user: this.myInfo } )
                 break;
+            case 'ChannelList':
+                this.sendMessage(type,
+                    await this.channelService.getAllChannelList()
+                );
+                break;
             case 'ChannelCreate':
                 const newChannel = await this.channelService.createChannel(this.myInfo, payload as RequestCreateChannel);
                 const message = await this.channelMessageService.createChannelMessage(newChannel.id, this.myInfo!, payload as RequestCreateChannel);
@@ -72,11 +77,6 @@ class MessageController {
                         channel: newChannel,
                         message: message
                     }
-                );
-                break;
-            case 'ChannelList':
-                this.sendMessage(type,
-                    await this.channelService.getAllChannelList()
                 );
                 break;
             case 'ChannelView':
@@ -106,6 +106,11 @@ class MessageController {
             case 'ChannelGetMessage':
                 this.sendMessage(type,
                     await this.channelMessageService.getMessageFrom(payload as RequestMessageChannel, config.messageSize)
+                );
+                break;
+            case 'MyChannelList':
+                this.sendMessage(type,
+                    await this.channelService.getAllChannelList() as ResponseChannelList
                 );
                 break;
             default:

@@ -12,13 +12,6 @@ const MyInfoChange = () => {
     const [nickname, setNickname] = useState(user.nickname);
     const [ showEmojiList, setShowEmojiList ] = useState(false);
     const { ChangeUser } = useContext(WebSocketContext) as WebSocketContextType;
-    const isLogin = useRecoilValue(isLoginState);
-
-    useEffect(() => {
-        if (!isLogin) {
-            navigate('/');
-        }
-    }, []);
 
     const handleEmojiSelect = (selectedEmoji: React.SetStateAction<string>) => {
         setEmoji(selectedEmoji);

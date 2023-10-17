@@ -1,12 +1,14 @@
-import React, {useState, useEffect, createContext, Context} from 'react';
+import React, {createContext, useEffect, useState} from 'react';
 import {
     RequestCreateChannel,
     RequestJoinChannel,
-    RequestLeaveChannel, RequestSendMessageChannel,
-    RequestViewChannel
+    RequestLeaveChannel,
+    RequestSendMessageChannel,
+    RequestViewChannel,
+    ResponseChannelList
 } from "../../src/dto/ChannelDto";
 import {useRecoilState} from "recoil";
-import {userState} from "./store/recoilState";
+import {channelListState, myChannelListState, userState} from "./store/recoilState";
 import {RequestChangeUser, RequestLogin, RequestSignup, ResponseLogin} from "../../src/dto/UserDto";
 import {RequestDto} from "../../src/dto/WebMessageDto";
 
@@ -18,17 +20,20 @@ export interface WebSocketContextType {
     LoginUser: (id: string, password: string) => void;
     ChangeUser: (nickname: string, emoji: string) => void;
     MyInfo: () => void;
-    ChannelCreate: (channelName: string) => void;
     ChannelList: () => void;
+    ChannelCreate: (channelName: string) => void;
     ChannelView: (channelId: string) => void;
     ChannelJoin: (channelId: string) => void;
     ChannelLeave: (channelId: string) => void;
     ChannelSendMessage: (channelId: string, message: string) => void;
     ChannelGetMessage: (channelId: string) => void;
+    MyChannelList: () => void;
 }
 export const WebSocketProvider = ({ host, children }: any) => {
     const [socket, setSocket] = useState(null as any);
     const [user, setUser] = useRecoilState(userState);
+    const [channelList, setChannelList] = useRecoilState(channelListState);
+    const [myChannelList, setMyChannelList] = useRecoilState(myChannelListState);
 
     useEffect(() => {
         const ws = new WebSocket(host);
@@ -60,6 +65,17 @@ export const WebSocketProvider = ({ host, children }: any) => {
                 const response = receivedData.payload as ResponseLogin;
                 setUser(response.user);
                 alert("Change user info success");
+            }
+            else if (receivedData.type === "ChannelList") {
+                const response = receivedData.payload as ResponseChannelList;
+                setChannelList(response.channelList);
+            }
+            else if (receivedData.type === "ChannelCreate") {
+                alert("Channel create success");
+            }
+            else if (receivedData.type === "MyChannelList") {
+                const response = receivedData.payload as ResponseChannelList;
+                setMyChannelList(response.channelList);
             }
             else if (receivedData.type === "error") {
                 alert(receivedData.payload.message);
@@ -174,7 +190,13 @@ export const WebSocketProvider = ({ host, children }: any) => {
                 type: "ChannelGetMessage",
                 payload: null
             });
-        }
+        },
+        MyChannelList: () => {
+            sendMessage({
+                type: "MyChannelList",
+                payload: null
+            });
+        },
     } as WebSocketContextType
 
     return (
