@@ -4,12 +4,13 @@ import {WebSocketContextType} from "../../websocket/WebSocketContextType";
 import {useRecoilValue, useSetRecoilState} from "recoil";
 import {channelCurrentIdState, channelListState} from "../../store/recoilState";
 import ChannelCard from "../../components/ChannelCard";
+import {useNavigate} from "react-router-dom";
 
 
 const ChannelList = () => {
+    const navigate = useNavigate();
     const { WSChannelList } = useContext(WebSocketContext) as WebSocketContextType;
     const channelList = useRecoilValue(channelListState);
-    const setChannelCurrentId = useSetRecoilState(channelCurrentIdState);
 
     useEffect(() => {
         WSChannelList();
@@ -17,7 +18,7 @@ const ChannelList = () => {
     }, []);
 
     const selectChannel = (channelId: string) => {
-        setChannelCurrentId(channelId);
+        navigate(`/channels/${channelId}`);
     }
 
     const renderChannelList = () => {

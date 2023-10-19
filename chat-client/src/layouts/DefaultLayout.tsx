@@ -1,6 +1,5 @@
-import React, {ReactNode, Suspense, useEffect} from 'react';
-import {Route, Routes, useLocation, useNavigate} from "react-router-dom";
-import MyInfo from "../pages/MyInfo";
+import React, {ReactNode, useEffect} from 'react';
+import {useLocation, useNavigate} from "react-router-dom";
 import TopMenu from "../components/TopMenu";
 import {useRecoilValue} from "recoil";
 import {isLoginState} from "../store/recoilState";

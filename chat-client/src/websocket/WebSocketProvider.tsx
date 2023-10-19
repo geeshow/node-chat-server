@@ -9,7 +9,7 @@ import {
 import {
     ResponseChangeUser,
     ResponseChannelList,
-    ResponseCreateChannel,
+    ResponseCreateChannel, ResponseJoinChannel,
     ResponseLogin,
     ResponseMyChannelList,
     ResponseSignup, ResponseViewChannel
@@ -37,61 +37,6 @@ export const WebSocketProvider = ({ host, children }: any) => {
     const setCurrentChannel = useSetRecoilState(currentChannelState);
     const [token, setToken] = useLocalStorage('token', '');
     const { messages, sendMessage } = useWebSocket(host);
-
-    useEffect(() => {
-        console.log('user', user);
-    }, [user]);
-    useEffect(() => {
-        if (messages.length === 0) return;
-
-        const receivedData = messages[messages.length - 1];
-        if (receivedData.type === "Ping") {
-            sendMessage({
-                type: "Pong",
-                payload: null
-            });
-        }
-        else if (receivedData.type === "SignupUser") {
-            const response = receivedData.payload as ResponseSignup;
-            setUser(response.user);
-            setToken(response.token);
-        }
-        else if (receivedData.type === "LoginUser") {
-            const response = receivedData.payload as ResponseLogin;
-            setUser(response.user);
-            setToken(response.token);
-        }
-        else if (receivedData.type === "ReConnection") {
-            const response = receivedData.payload as ResponseLogin;
-            setUser(response.user);
-            setToken(response.token);
-        }
-        else if (receivedData.type === "ChangeUser") {
-            const response = receivedData.payload as ResponseChangeUser;
-            setUser(response.user);
-            alert("Change user info success");
-        }
-        else if (receivedData.type === "ChannelList") {
-            const response = receivedData.payload as ResponseChannelList;
-            setChannelList(response.channelList);
-        }
-        else if (receivedData.type === "ChannelView") {
-            const response = receivedData.payload as ResponseViewChannel;
-            setCurrentChannel(response);
-        }
-        else if (receivedData.type === "ChannelCreate") {
-            const response = receivedData.payload as ResponseCreateChannel;
-            alert(response.message.content);
-            setChannelList((prevChannelList) => [...prevChannelList, response.channel]);
-        }
-        else if (receivedData.type === "MyChannelList") {
-            const response = receivedData.payload as ResponseMyChannelList;
-            setMyChannelList(response.channelList);
-        }
-        else if (receivedData.type === "error") {
-            alert(receivedData.payload.message);
-        }
-    }, [messages]);
 
     const request = {
         WSPing: () => {
@@ -189,6 +134,65 @@ export const WebSocketProvider = ({ host, children }: any) => {
             });
         },
     } as WebSocketContextType
+
+    useEffect(() => {
+        if (messages.length === 0) return;
+
+        const receivedData = messages[messages.length - 1];
+        if (receivedData.type === "Ping") {
+            sendMessage({
+                type: "Pong",
+                payload: null
+            });
+        }
+        else if (receivedData.type === "SignupUser") {
+            const response = receivedData.payload as ResponseSignup;
+            setUser(response.user);
+            setToken(response.token);
+        }
+        else if (receivedData.type === "LoginUser") {
+            const response = receivedData.payload as ResponseLogin;
+            setUser(response.user);
+            setToken(response.token);
+        }
+        else if (receivedData.type === "ReConnection") {
+            const response = receivedData.payload as ResponseLogin;
+            setUser(response.user);
+            setToken(response.token);
+        }
+        else if (receivedData.type === "ChangeUser") {
+            const response = receivedData.payload as ResponseChangeUser;
+            setUser(response.user);
+            alert("Change user info success");
+        }
+        else if (receivedData.type === "ChannelList") {
+            const response = receivedData.payload as ResponseChannelList;
+            setChannelList(response.channelList);
+        }
+        else if (receivedData.type === "ChannelView") {
+            const response = receivedData.payload as ResponseViewChannel;
+            setCurrentChannel(response);
+        }
+        else if (receivedData.type === "ChannelCreate") {
+            const response = receivedData.payload as ResponseCreateChannel;
+            setChannelList((prevChannelList) => [...prevChannelList, response.channel]);
+        }
+        else if (receivedData.type === "ChannelJoin") {
+            const response = receivedData.payload as ResponseJoinChannel;
+            if (response.user.id === user.id) {
+                alert(response.message.content);
+                setChannelList((prevChannelList) => [...prevChannelList, response.channel]);
+                setMyChannelList((prevChannelList) => [...prevChannelList, response.channel]);
+            }
+        }
+        else if (receivedData.type === "MyChannelList") {
+            const response = receivedData.payload as ResponseMyChannelList;
+            setMyChannelList(response.channelList);
+        }
+        else if (receivedData.type === "error") {
+            alert(receivedData.payload.message);
+        }
+    }, [messages]);
 
     return (
         <WebSocketContext.Provider value={request}>

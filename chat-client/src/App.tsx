@@ -23,7 +23,9 @@ function App() {
                                 <Route path="/my-info" element={<MyInfo/>}/>
                                 <Route path="/my-info/change" element={<MyInfoChange/>}/>
                                 <Route path="/channels" element={<Channel/>}/>
+                                <Route path="/channels/:channelId" element={<Channel/>}/>
                                 <Route path="/my-channels" element={<MyChannel/>}/>
+                                <Route path="/my-channels/:channelId" element={<MyChannel/>}/>
                                 {/* 여기에 다른 경로를 추가하세요 */}
                             </Routes>
                         </Suspense>

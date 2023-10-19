@@ -3,14 +3,18 @@ import {useRecoilValue} from "recoil";
 import {channelCurrentIdState} from "../../store/recoilState";
 import {useNavigate} from "react-router-dom";
 
-
-const MyChannelChat = () => {
+interface ChannelViewProps {
+    channelId: string;
+}
+const MyChannelChat:React.FC<ChannelViewProps> = ({ channelId }) => {
     const navigate = useNavigate();
     const channelCurrentId = useRecoilValue(channelCurrentIdState);
 
     useEffect(() => {
-        alert(channelCurrentId);
-    }, [channelCurrentId]);
+        console.log('channelId', channelId)
+        if (channelId !== '') {
+        }
+    }, [channelId]);
 
     return (
         <section className={'common-section'}>

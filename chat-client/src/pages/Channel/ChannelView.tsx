@@ -1,29 +1,45 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import WebSocketContext from "../../websocket/WebSocketProvider";
 import {useRecoilValue, useSetRecoilState} from "recoil";
-import {channelCurrentIdState, currentChannelState} from "../../store/recoilState";
+import {channelCurrentIdState, currentChannelState, isJoinChannelState, isLoginState} from "../../store/recoilState";
 import {useNavigate} from "react-router-dom";
 import {WebSocketContextType} from "../../websocket/WebSocketContextType";
 import UserCard from "../../components/UserCard";
 import UserSmallCard from "../../components/UserSmallCard";
 
-
-const ChannelView = () => {
+interface ChannelViewProps {
+    channelId: string;
+}
+const ChannelView:React.FC<ChannelViewProps> = ({ channelId }) => {
     const navigate = useNavigate();
     const { WSChannelView, WSChannelJoin } = useContext(WebSocketContext) as WebSocketContextType;
-    const channelCurrentId = useRecoilValue(channelCurrentIdState);
     const currentChannel = useRecoilValue(currentChannelState);
+    const isLogin = useRecoilValue(isLoginState);
+    const isJoinChannel = useRecoilValue(isJoinChannelState);
+    const [doEnterChannel, setDoEnterChannel] = useState(false);
 
     useEffect(() => {
-        console.log('channelCurrentId', channelCurrentId)
-        if (channelCurrentId !== '') {
-            WSChannelView(channelCurrentId);
+        console.log('channelId', channelId)
+        if (channelId !== '') {
+            WSChannelView(channelId);
         }
-    }, [channelCurrentId]);
+    }, [channelId]);
 
     const joinChannel = () => {
-        WSChannelJoin(currentChannel.channel.id);
+        console.log('channelId', channelId);
+        WSChannelJoin(channelId); // after response join channel, move to my channel view
+        setDoEnterChannel(true);
     }
+
+    const enterChannel = () => {
+        setDoEnterChannel(true);
+    }
+
+    useEffect(() => {
+        if (isJoinChannel && doEnterChannel) {
+            navigate(`/my-channels/${channelId}`);
+        }
+    }, [isJoinChannel, doEnterChannel]);
 
     const userList = () => {
         if (currentChannel.userList) {
@@ -47,7 +63,9 @@ const ChannelView = () => {
                 </div>
             }
             <div className={'flex justify-end'}>
-                <button className={'common-btn px-4 ml-1'} onClick={() => joinChannel}>Join</button>
+                { isJoinChannel
+                   ? <button className={'common-btn px-4 ml-1'} onClick={() => joinChannel()}>Join</button>
+                   : <button className={'common-btn px-4 ml-1'} onClick={() => enterChannel()}>Enter</button> }
                 <button className={'common-btn px-4 ml-1'} onClick={() => navigate('/channel/chat')}>Share</button>
             </div>
             <div className={'flex flex-col justify-start items-start mt-10'}>

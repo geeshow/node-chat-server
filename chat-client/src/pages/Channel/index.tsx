@@ -2,8 +2,12 @@ import React, {useEffect} from 'react';
 import ChannelView from "./ChannelView";
 import ChannelList from "./ChannelList";
 import ChannelCreate from "./ChannelCreate";
+import {useParams} from "react-router-dom";
 
 const Channel = () => {
+    const { channelId } = useParams();
+    console.log('channelId', channelId)
+
     return (
         <div className={'common-page'}>
             <div className={'flex flex-row'}>
@@ -12,7 +16,7 @@ const Channel = () => {
                     <ChannelCreate />
                 </div>
                 <div className={'w-96 h-96'}>
-                    <ChannelView />
+                    { channelId && <ChannelView channelId={channelId} /> }
                 </div>
             </div>
         </div>

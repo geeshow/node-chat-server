@@ -23,6 +23,15 @@ export class MapRepository<T> {
         }
         return data as T;
     }
+    delete(id: string): T {
+        if (this.dataList.has(id)) {
+            const data = this.dataList.get(id)
+            this.dataList.delete(id)
+            return data as T
+        } else {
+            throw new Error('Not exist data');
+        }
+    }
 
     update(data: BaseEntity): T {
         if (this.dataList.has(data.id)) {
@@ -38,6 +47,16 @@ export class MapRepository<T> {
         const result = []
         for (const [key, value] of entries) {
             result.push(value)
+        }
+        return result
+    }
+    listByIds(ids: string[]): Array<T> {
+        const entries = this.dataList.entries() as any
+        const result = []
+        for (const [key, value] of entries) {
+            if (ids.includes(value.id)) {
+                result.push(value)
+            }
         }
         return result
     }
@@ -57,6 +76,17 @@ export class MapRepository<T> {
         const entries = this.dataList.entries() as any
         for (const [key, value] of entries) {
             if (value[findKey] === findValue) {
+                return value;
+            }
+        }
+        return null
+    }
+
+    deleteOne(findKey: string, findValue: string): T | null {
+        const entries = this.dataList.entries() as any
+        for (const [key, value] of entries) {
+            if (value[findKey] === findValue) {
+                this.dataList.delete(key)
                 return value;
             }
         }

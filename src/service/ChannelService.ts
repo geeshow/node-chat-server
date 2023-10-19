@@ -4,11 +4,13 @@ import {
 import {Channel, ChannelRepository} from "../repository/ChannelRepository";
 import {User, UserRepository} from "../repository/UserRepository";
 import {RequestCreateChannel, RequestJoinChannel, RequestLeaveChannel, RequestViewChannel} from "../dto/RequestDto";
+import {MyChannel, MyChannelRepository} from "../repository/MyChannelRepository";
 
 
 class ChannelService {
     userRepository: UserRepository = new UserRepository();
     channelRepository: ChannelRepository = new ChannelRepository();
+    myChannelRepository: MyChannelRepository = new MyChannelRepository();
 
     public createChannel(myInfo: User, channelName: string) {
         const channelId = myInfo.id + Date.now();
@@ -36,6 +38,10 @@ class ChannelService {
         if (!channel) {
             throw new Error('Channel data not found. Cannot join channel')
         } else {
+            this.myChannelRepository.create({
+                id: myInfo.id + Date.now(),
+                channelId: channelId
+            } as MyChannel);
             channel.userIdList.push(myInfo.id)
             return channel
         }
@@ -54,6 +60,8 @@ class ChannelService {
             if (index > -1) {
                 channel.userIdList.splice(index, 1)
             }
+            this.myChannelRepository.deleteOne('channelId', payload.channelId)
+
             return {
                 id: channel.id,
                 channelName: channel.channelName,
@@ -66,18 +74,34 @@ class ChannelService {
         const list = this.channelRepository.listAll()
         const result = []
         for (let i = 0; i < list.length; i++) {
-            const channel = list[i];
-            const host = this.userRepository.findOneById(channel.hostUserId)
-            if (!host) {
-                throw new Error('Host not found')
-            }
-            result.push({
-                id: channel.id,
-                channelName: channel.channelName,
-                host: host as UserDto
-            })
+            result.push(
+                this.bindChannel(list[i])
+            )
         }
         return result as ChannelDto[]
+    }
+    public getMyChannelList(): ChannelDto[] {
+        const myChannelIds = this.myChannelRepository.listAll()
+        const list = this.channelRepository.listByIds(myChannelIds.map((myChannel) => myChannel.channelId))
+        const result = []
+        for (let i = 0; i < list.length; i++) {
+            result.push(
+                this.bindChannel(list[i])
+            )
+        }
+        return result as ChannelDto[]
+    }
+
+    private bindChannel(channel: Channel) {
+        const host = this.userRepository.findOneById(channel.hostUserId)
+        if (!host) {
+            throw new Error('Host not found')
+        }
+        return {
+            id: channel.id,
+            channelName: channel.channelName,
+            host: host as UserDto
+        }
     }
     public getChannelWithUserList(channelId: string) {
         const channel = this.channelRepository.findOneById(channelId)

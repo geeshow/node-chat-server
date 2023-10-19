@@ -208,22 +208,29 @@ class MessageController extends WebsocketController {
 
     private channelJoin(payload: RequestJoinChannel) : ResponseJoinChannel {
         if (this.currentUser === null)
-            throw new Error('myInfo is null')
+            throw new Error('No your info in this connection. Cannot join channel')
 
         this.channelService.joinChannel(this.currentUser, payload.channelId);
+        const { channel, userList} = this.channelService.getChannelWithUserList(payload.channelId)
         const joinChannelMessage = this.channelMessageService.joinChannelMessage(this.currentUser!, payload.channelId);
         return {
-            message: joinChannelMessage
-        }
+            channel,
+            userList: userList as UserDto[],
+            message: joinChannelMessage,
+            user: this.currentUser as UserDto
+        } as ResponseJoinChannel
     }
 
-    private channelLeave(payload: RequestLeaveChannel) : ResponseLeaveChannel {
-        const channel = this.channelService.leaveChannel(this.currentUser, payload as RequestLeaveChannel);
+    private channelLeave(payload: RequestLeaveChannel): ResponseLeaveChannel {
+        this.channelService.leaveChannel(this.currentUser, payload as RequestLeaveChannel);
+        const { channel, userList} = this.channelService.getChannelWithUserList(payload.channelId)
         const leaveChannelMessage = this.channelMessageService.leaveChannelMessage(this.currentUser!, payload.channelId);
         return {
             channel: channel as ChannelDto,
-            message: leaveChannelMessage
-        }
+            userList: userList as UserDto[],
+            message: leaveChannelMessage,
+            user: this.currentUser as UserDto
+        } as ResponseLeaveChannel
     }
     private channelSendMessage(payload:RequestSendMessageChannel) : ResponseSendMessageChannel {
         if (this.currentUser === null)
@@ -254,7 +261,7 @@ class MessageController extends WebsocketController {
     }
 
     private myChannelList() : ResponseChannelList {
-        const result = this.channelService.getAllChannelList()
+        const result = this.channelService.getMyChannelList()
         return {
             channelList: result as ChannelDto[]
         }

@@ -19,6 +19,16 @@ export const isLoginState = selector({
         return !!user.id;
     }
 });
+export const isJoinChannelState = selector({
+    key: "isJoinChannelState",
+    get: ({ get }) => {
+        const user = get(userState);
+        const channel = get(currentChannelState);
+        if (user.id === '') return false;
+        if (!channel.userList) return false;
+        return !channel.userList.find((userDto) => userDto.id === user.id);
+    }
+});
 
 export const channelListState = atom({
     key: "channelListState",
@@ -38,3 +48,4 @@ export const currentChannelState = atom({
     key: "currentChannelState",
     default: {} as ResponseViewChannel
 });
+

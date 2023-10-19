@@ -21,17 +21,22 @@ export interface ResponseCreateChannel {
     channel: ChannelDto;
     message: MessageDto;
 }
-export interface ResponseJoinChannel {
-    message: MessageDto;
-}
 
 export interface ResponseViewChannel {
     channel: ChannelDto;
     userList: UserDto[]
 }
+export interface ResponseJoinChannel {
+    channel: ChannelDto,
+    userList: UserDto[],
+    message: MessageDto,
+    user: UserDto,
+}
 export interface ResponseLeaveChannel {
     channel: ChannelDto,
-    message: MessageDto
+    userList: UserDto[],
+    message: MessageDto,
+    user: UserDto,
 }
 export interface ResponseGetMessageChannel {
     messageList: MessageDto[]
