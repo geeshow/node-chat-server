@@ -1,5 +1,5 @@
 import React, {useContext, useState} from 'react';
-import WebSocketContext, {WebSocketContextType} from "../../WebSocketProvider";
+import WebSocketContext from "../../websocket/WebSocketProvider";
 import {useRecoilState, useRecoilValue} from "recoil";
 import {isLoginState, userState} from "../../store/recoilState";
 import UserCard from "../../components/UserCard";

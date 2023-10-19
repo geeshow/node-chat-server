@@ -1,73 +1,63 @@
 import {
-    RequestCreateChannel,
-    RequestJoinChannel,
-    RequestLeaveChannel, RequestMessageChannel,
-    RequestSendMessageChannel
-} from "../dto/ChannelDto";
+    MessageDto,
+} from "../dto/DefaultDto";
 import {User} from "../repository/UserRepository";
-import {ChannelMessage, ChannelMessageRepository} from "../repository/ChannelMessageRepository";
-import {ResponseUserInfo} from "../dto/UserDto";
-
+import {ChannelMessageRepository} from "../repository/ChannelMessageRepository";
 
 class ChannelService {
     channelMessageRepository: ChannelMessageRepository = new ChannelMessageRepository();
 
-    public async createChannelMessage(channelId: string, user: User, payload: RequestCreateChannel) {
+    public async createChannelMessage(channelId: string, user: User, channelName: string) {
         const createMessage = {
-            id: channelId,
-            message: [{
-                id: channelId + Date.now(),
-                type: 'CREATE_CHANNEL',
-                content: `${user.emoji} ${user.nickname} has created the channel`,
-                userId: user.id,
-            }]
-        } as ChannelMessage
-        await this.channelMessageRepository.create(createMessage)
+            channelId: channelId,
+            type: 'CREATE_CHANNEL',
+            content: `${user.emoji} ${user.nickname} has created the channel '${channelName}'`,
+            userId: user.id,
+            date: new Date(),
+        } as MessageDto
+        await this.channelMessageRepository.init(createMessage)
         return createMessage
     }
 
-    public async joinChannelMessage(user: User, payload: RequestJoinChannel) {
+    public async joinChannelMessage(user: User, channelId: string) {
         const joinMessage = {
-            channelId: payload.channelId,
+            channelId: channelId,
             type: 'JOIN_CHANNEL',
             content: `${user.emoji} ${user.nickname} has joined the channel`,
             userId: user.id,
-        }
+        } as MessageDto
         await this.channelMessageRepository.createMessage(joinMessage)
         return joinMessage
     }
-    public async getMessageFrom(payload: RequestMessageChannel, limit: number) {
+    public async getMessageFrom(channelId: string, fromMessageId: string, limit: number) {
         return this.channelMessageRepository.nextMessage({
-            channelId: payload.channelId,
-            fromMessageId: payload.fromMessageId,
+            channelId: channelId,
+            fromMessageId: fromMessageId,
             limit: limit
         })
     }
 
-    public async leaveChannelMessage(user: User, payload: RequestLeaveChannel) {
-        await this.channelMessageRepository.createMessage({
-            channelId: payload.channelId,
+    public async leaveChannelMessage(user: User, channelId: string) {
+        const leaveMessage = {
+            channelId: channelId,
             type: 'LEAVE_CHANNEL',
             content: `${user.emoji} ${user.nickname} has left the channel`,
             userId: user.id,
-        })
+        } as MessageDto
+        await this.channelMessageRepository.createMessage(leaveMessage)
+        return leaveMessage
     }
 
-    public async addMessageChannel(user: User | null, payload: RequestSendMessageChannel) {
-        if (user === null)
-            throw new Error('myInfo is null')
-
-        const newMessage = await this.channelMessageRepository.createMessage({
-            channelId: payload.channelId,
+    public async addMessageChannel(user: User, channelId: string, message: string) {
+        const newMessage = {
+            channelId: channelId,
             type: 'MESSAGE',
-            content: payload.message,
+            content: message,
             userId: user.id,
-        })
+        } as MessageDto
+        await this.channelMessageRepository.createMessage(newMessage)
 
-        return {
-            message: newMessage ,
-            user: user as ResponseUserInfo,
-        }
+        return newMessage
     }
 }
 

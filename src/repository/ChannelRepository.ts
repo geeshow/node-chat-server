@@ -8,10 +8,10 @@ export interface Channel extends BaseEntity {
     hostUserId: string;
 }
 
-const userList: Map<string, Channel> = new Map();
+const dataList = new Map();
 
 export class ChannelRepository extends MapRepository<Channel> {
     constructor() {
-        super(userList);
+        super(dataList);
     }
 }

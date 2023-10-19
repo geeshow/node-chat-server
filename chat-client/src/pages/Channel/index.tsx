@@ -1,16 +1,24 @@
-import React from 'react';
-import MyChannelList from "./MyChannelList";
-import MyChannelChat from "./MyChannelChat";
+import React, {useEffect} from 'react';
+import ChannelView from "./ChannelView";
+import ChannelList from "./ChannelList";
+import ChannelCreate from "./ChannelCreate";
 
-const MyChannel = () => {
+const Channel = () => {
+    useEffect(() => {
+        // ChannelList();
+        console.log('Channel')
+    }, []);
     return (
         <div className={'common-page'}>
             <div className={'flex flex-row'}>
-                <MyChannelList />
-                <MyChannelChat />
+                <div className={'flex flex-col'}>
+                    <ChannelList />
+                    <ChannelCreate />
+                </div>
+                <ChannelView />
             </div>
         </div>
     );
 };
 
-export default MyChannel;
+export default Channel;

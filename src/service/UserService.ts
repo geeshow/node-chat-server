@@ -1,50 +1,56 @@
-import {RequestChangeUser, RequestLogin, RequestSignup, ResponseLogin, ResponseUserInfo} from "../dto/UserDto";
 import {User, UserRepository} from "../repository/UserRepository";
 import {UserAuth, UserAuthRepository} from "../repository/UserAuthRepository";
-
-
+import crypto from "crypto"
 
 class UserService {
     userRepository: UserRepository = new UserRepository();
     userAuthRepository: UserAuthRepository = new UserAuthRepository();
 
-    public async signupUser(payload: RequestSignup) {
-        if (payload === null)
-            throw new Error('payload is null')
-
-        const userAuth = await this.userAuthRepository.findOneById(payload.id)
-        const user = await this.userRepository.findOneById(payload.id)
+    private hashPassword(id: string, password: string): string {
+        const hash = crypto.createHash('sha256');
+        hash.update(id + password + 'salt');
+        return id + hash.digest('hex');
+    }
+    public async signupUser(id: string, password: string) {
+        const userAuth = this.userAuthRepository.findOneById(id)
+        const user = this.userRepository.findOneById(id)
 
         if (userAuth && user) {
             throw new Error('User already exists');
         } else {
+            const hashedPassword = this.hashPassword(id, password)
             const newUserAuth = {
-                id: payload.id,
-                password: payload.password,
+                id: id,
+                password: hashedPassword,
             } as UserAuth
-            await this.userAuthRepository.create(newUserAuth);
+            this.userAuthRepository.create(newUserAuth);
 
             const newUser = {
-                id: payload.id,
+                id: id,
                 emoji: getRandomEmoji(),
-                nickname: payload.id,
+                nickname: id,
                 lastLogin: new Date()
             } as User
-            await this.userRepository.create(newUser);
-            return newUser
+            this.userRepository.create(newUser);
+
+            return {
+                user: newUser,
+                auth: newUserAuth
+            }
         }
     }
-    public async loginUser(payload: RequestLogin) {
-        if (payload === null)
-            throw new Error('payload is null')
-
-        const userAuth = await this.userAuthRepository.findOneById(payload.id)
-        const user = await this.userRepository.findOneById(payload.id)
+    public async loginUser(id: string, password: string) {
+        const userAuth = this.userAuthRepository.findOneById(id)
+        const user = this.userRepository.findOneById(id)
 
         if (userAuth && user) {
-            if (userAuth.password === payload.password) {
+            const hashedPassword = this.hashPassword(id, password)
+            if (userAuth.password === hashedPassword) {
                 user.lastLogin = new Date();
-                return user;
+                return {
+                    user,
+                    auth: userAuth
+                }
             } else {
                 throw new Error('Wrong password');
             }
@@ -52,10 +58,17 @@ class UserService {
             throw new Error('User does not exist');
         }
     }
-    public async changeUser(user: User, payload: RequestChangeUser) {
+    public getUserByToken(token: string) {
+        const userAuth = this.userAuthRepository.findOneByPassword(token)
+        if (userAuth) {
+            return this.userRepository.findOneById(userAuth.id)
+        }
+        return null
+    }
+    public async changeUser(user: User, nickname: string, emoji: string) {
         if (user) {
-            user.nickname = payload.nickname
-            user.emoji = payload.emoji
+            user.nickname = nickname
+            user.emoji = emoji
         } else {
             throw new Error('User does not exist');
         }

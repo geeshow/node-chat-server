@@ -6,22 +6,25 @@ class WebSocketHandler {
     private ws: WebSocket;
     private messageController: MessageController;
 
-    constructor(ws: WebSocket) {
+    constructor(ws: WebSocket, token: string) {
         console.log('Client connected');
         this.ws = ws;
-        this.messageController = new MessageController(this);
+        this.messageController = new MessageController(this, token);
 
         this.ws.on('message', this.receiveMessage.bind(this));
         this.ws.on('close', this.handleClose.bind(this));
         this.ws.on('error', this.handleError.bind(this));
     }
 
-    sendMessage(type: string, payload: any = null): void {
+    sendMessage(uid: string, type: string, payload: any = null): void {
+        let response = {}
         if (payload === null) {
-            this.ws.send(JSON.stringify({type}));
+            response = {uid, type}
         } else {
-            this.ws.send(JSON.stringify({type, payload}));
+            response = {uid, type, payload}
         }
+        console.log('<<<<<', response)
+        this.ws.send(JSON.stringify(response));
     }
 
     terminate(): void {
@@ -31,14 +34,15 @@ class WebSocketHandler {
     private receiveMessage(message: string): void {
         try {
             const parsedMessage = JSON.parse(message) as RequestDto;
+            console.log('>>>>>', parsedMessage)
             if (parsedMessage.type) {
-                this.messageController.receiveMessage(parsedMessage.type, parsedMessage.payload)
+                this.messageController.receiveMessage(parsedMessage.uid, parsedMessage.type, parsedMessage.payload)
                     .then((result) => {
                         console.log('result', result)
                     })
                     .catch((e) => {
                         console.error(e);
-                        this.sendMessage('error', {message: e.message})
+                        this.sendMessage(parsedMessage.uid, 'error', {message: e.message})
                     });
             } else {
                 console.warn('Invalid message format:', message);

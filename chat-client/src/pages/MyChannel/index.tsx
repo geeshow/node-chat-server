@@ -1,20 +1,16 @@
 import React from 'react';
-import ChannelView from "./ChannelView";
-import ChannelList from "./ChannelList";
-import ChannelCreate from "./ChannelCreate";
+import MyChannelList from "./MyChannelList";
+import MyChannelChat from "./MyChannelChat";
 
-const Channel = () => {
+const MyChannel = () => {
     return (
         <div className={'common-page'}>
             <div className={'flex flex-row'}>
-                <div className={'flex flex-col'}>
-                    <ChannelList />
-                    <ChannelCreate />
-                </div>
-                <ChannelView />
+                <MyChannelList />
+                <MyChannelChat />
             </div>
         </div>
     );
 };
 
-export default Channel;
+export default MyChannel;

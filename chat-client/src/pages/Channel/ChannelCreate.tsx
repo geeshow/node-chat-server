@@ -1,17 +1,21 @@
-import React, {useContext, useState} from 'react';
-import styled from 'styled-components';
-import WebSocketContext, {WebSocketContextType} from "../../WebSocketProvider";
+import React, {useContext, useEffect, useState} from 'react';
+import WebSocketContext from "../../websocket/WebSocketProvider";
+import {WebSocketContextType} from "../../websocket/WebSocketContextType";
 
 const ChannelCreate = () => {
     const [channelName, setChannelName] = useState('');
-    const { ChannelCreate } = useContext(WebSocketContext) as WebSocketContextType;
+    const { WSChannelCreate } = useContext(WebSocketContext) as WebSocketContextType;
 
+    useEffect(() => {
+        // ChannelList();
+        console.log('ChannelCreate')
+    }, []);
     const requestCreateChannel = () => {
         if (channelName === '') {
             alert('Input channel name');
             return;
         }
-        ChannelCreate(channelName);
+        WSChannelCreate(channelName);
     }
 
     return (

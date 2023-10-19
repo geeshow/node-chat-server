@@ -1,20 +1,18 @@
-import React, {useContext, useEffect, useState} from 'react';
-import WebSocketContext, {WebSocketContextType} from "../../WebSocketProvider";
-import {useRecoilState, useRecoilValue, useSetRecoilState} from "recoil";
-import {channelCurrentIdState, channelListState, isLoginState, userState} from "../../store/recoilState";
-import UserCard from "../../components/UserCard";
-import EmojiSelector from "../../components/EmojiSelector";
-import {useNavigate} from "react-router-dom";
+import React, {useContext, useEffect} from 'react';
+import WebSocketContext from "../../websocket/WebSocketProvider";
+import {useRecoilValue, useSetRecoilState} from "recoil";
+import {channelCurrentIdState, channelListState} from "../../store/recoilState";
 import ChannelCard from "../../components/ChannelCard";
+import {WebSocketContextType} from "../../websocket/WebSocketContextType";
 
 
 const MyChannelList = () => {
-    const { ChannelList, ChannelCreate } = useContext(WebSocketContext) as WebSocketContextType;
+    const { WSChannelList, WSChannelCreate } = useContext(WebSocketContext) as WebSocketContextType;
     const channelList = useRecoilValue(channelListState);
     const setChannelCurrentId = useSetRecoilState(channelCurrentIdState);
 
     useEffect(() => {
-        ChannelList();
+        WSChannelList();
     }, []);
 
     const selectChannel = (channelId: string) => {

@@ -3,9 +3,11 @@ import config from "../config.json";
 import WebSocketHandler from "./socket/WebSocketHandler";
 
 const wss = new WebSocketServer({ port: config.port })
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, request) => {
     try {
-        new WebSocketHandler(ws);
+        const token = request.headers['sec-websocket-protocol'] as string;
+        console.log("token: ", token);
+        new WebSocketHandler(ws, token);
     } catch (e) {
         console.log(e)
     }

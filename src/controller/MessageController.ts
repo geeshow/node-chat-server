@@ -1,161 +1,262 @@
 import {USER_STATUS} from "../consts/consts";
 import WebSocketHandler from "../socket/WebSocketHandler";
 import UserService from "../service/UserService";
-import {RequestChangeUser, RequestLogin, RequestSignup, ResponseUserInfo} from "../dto/UserDto";
 import {User} from "../repository/UserRepository";
 import ChannelService from "../service/ChannelService";
 import {
-    RequestCreateChannel,
-    RequestJoinChannel,
-    RequestLeaveChannel, RequestMessageChannel,
-    RequestSendMessageChannel,
-    RequestViewChannel, ResponseChannelList
-} from "../dto/ChannelDto";
+    ChannelDto, MessageDto, UserDto,
+} from "../dto/DefaultDto";
 import ChannelMessageService from "../service/ChannelMessageService";
 import config from "../../config.json";
+import WebsocketController from "./WebsocketController";
+import {MessageItem} from "../repository/ChannelMessageRepository";
+import {
+    RequestChangeUser,
+    RequestCreateChannel, RequestGetMessageChannel, RequestJoinChannel, RequestLeaveChannel,
+    RequestLogin, RequestSendMessageChannel,
+    RequestSignup,
+    RequestViewChannel
+} from "../dto/RequestDto";
+import {
+    ResponseChangeUser,
+    ResponseChannelList,
+    ResponseCreateChannel,
+    ResponseGetMessageChannel,
+    ResponseJoinChannel,
+    ResponseLeaveChannel,
+    ResponseLogin,
+    ResponseMyInfo,
+    ResponseSendMessageChannel,
+    ResponseSignup,
+    ResponseViewChannel
+} from "../dto/ResponseDto";
 
-const connectionUserList: Map<string, MessageController> = new Map();
-
-class MessageController {
-    private clientSocket: WebSocketHandler;
-    private pingInterval: NodeJS.Timeout | null = null;
-    private pingIntervalTime = 3000; // every 3 seconds
-    private missedPongs: number = 0;
-    private limitMissedPongs: number = 30;
+class MessageController extends WebsocketController {
     private userStatus: string;
-    private pingTime: number = 0;
     private userService: UserService = new UserService()
     private channelService: ChannelService = new ChannelService()
     private channelMessageService: ChannelMessageService = new ChannelMessageService()
-    private myInfo: User | null = null;
+    private currentUser: User | null = null;
 
-    constructor(clientSocket: WebSocketHandler) {
-        this.clientSocket = clientSocket
+    constructor(clientSocket: WebSocketHandler, token: string) {
+        super(clientSocket)
         this.userStatus = USER_STATUS.CONNECTED;
-        // this.startPingPongChecker();
+        if (token) {
+            if (this.currentUser === null) {
+                const user = this.userService.getUserByToken(token);
+                if (user !== null) {
+                    this.currentUser = user;
+                }
+            }
+        }
     }
 
-    public async receiveMessage(type: string, payload: any = null) {
+    public async receiveMessage(uid: string, type: string, payload: any = null) {
         switch (type) {
             case 'Ping':
-                this.sendMessage('PONG')
+                this.ping()
                 break;
             case 'Pong':
-                this.missedPongs = 0;
-                console.log(`Received pong. ${Date.now() - this.pingTime}ms`)
+                this.pong();
                 break;
-            case 'SignupUser':
-                const signupUserInfo = await this.userService.signupUser(payload as RequestSignup);
-                this.myInfo = signupUserInfo;
-                connectionUserList.set(signupUserInfo.id, this);
-                this.sendMessage(type, { user: signupUserInfo as ResponseUserInfo })
+            case 'SignupUser': {
+                const result = await this.signupUser(payload as RequestSignup);
+                this.sendTelegram(uid, type, result as ResponseSignup)
                 break;
-            case 'LoginUser':
-                const loginUserInfo = await this.userService.loginUser(payload as RequestLogin);
-                this.myInfo = loginUserInfo;
-                connectionUserList.set(loginUserInfo.id, this);
-                this.sendMessage(type, { user: loginUserInfo as ResponseUserInfo })
+            }
+            case 'LoginUser': {
+                const result = await this.loginUser(payload as RequestLogin);
+                this.sendTelegram(uid, type, result as ResponseLogin)
                 break;
-            case 'ChangeUser':
-                if (this.myInfo === null)
-                    throw new Error('myInfo is null')
-                await this.userService.changeUser(this.myInfo, payload as RequestChangeUser);
-                this.sendMessage(type, { user: this.myInfo as ResponseUserInfo })
+            }
+            case 'ChangeUser': {
+                const result = await this.changeUser(payload as RequestChangeUser);
+                this.sendTelegram(uid, type, result as ResponseChangeUser)
                 break;
-            case 'MyInfo':
-                this.sendMessage(type, { user: this.myInfo } )
+            }
+            case 'MyInfo': {
+                const result = await this.myInfo();
+                this.sendTelegram(uid, type, result as ResponseMyInfo)
                 break;
-            case 'ChannelList':
-                this.sendMessage(type,
-                    await this.channelService.getAllChannelList()
-                );
+            }
+            case 'ChannelList': {
+                const result = await this.channelList();
+                this.sendTelegram(uid, type, result as ResponseChannelList);
                 break;
-            case 'ChannelCreate':
-                const newChannel = await this.channelService.createChannel(this.myInfo, payload as RequestCreateChannel);
-                const message = await this.channelMessageService.createChannelMessage(newChannel.id, this.myInfo!, payload as RequestCreateChannel);
-                this.sendMessage(type, {
-                        channel: newChannel,
-                        message: message
-                    }
-                );
+            }
+            case 'ChannelCreate': {
+                const result = await this.channelCreate(payload as RequestCreateChannel);
+                this.broadcastAllConnection(uid, type, result as ResponseCreateChannel);
                 break;
-            case 'ChannelView':
-                this.sendMessage(type,
-                    await this.channelService.getChannelWithUserList(payload as RequestViewChannel)
-                );
+            }
+            case 'ChannelView': {
+                const result = await this.channelView(payload as RequestViewChannel);
+                this.sendTelegram(uid, type, result as ResponseViewChannel);
                 break;
-            case 'ChannelJoin':
-                await this.channelService.joinChannel(this.myInfo, payload as RequestJoinChannel);
-                const joinChannelMessage = await this.channelMessageService.joinChannelMessage(this.myInfo!, payload as RequestJoinChannel);
-
-                await this.broadcastInChannel(type, payload.channelId, joinChannelMessage)
+            }
+            case 'ChannelJoin': {
+                const result = await this.channelJoin(payload as RequestJoinChannel);
+                await this.broadcastInChannel(uid, type, payload.channelId, result as ResponseJoinChannel)
                 break;
-            case 'ChannelLeave':
-                await this.channelService.leaveChannel(this.myInfo, payload as RequestLeaveChannel);
-                const leaveChannelMessage = await this.channelMessageService.leaveChannelMessage(this.myInfo!, payload as RequestJoinChannel);
-
-                await this.broadcastInChannel(type, payload.channelId, leaveChannelMessage)
-                this.sendMessage(type,
-                    await this.channelService.getChannelWithUserList(payload as RequestLeaveChannel)
-                );
+            }
+            case 'ChannelLeave': {
+                const result = await this.channelLeave(payload as RequestLeaveChannel);
+                await this.broadcastInChannel(uid, type, payload.channelId, result as ResponseLeaveChannel)
                 break;
-            case 'ChannelSendMessage':
-                const newMessage = await this.channelMessageService.addMessageChannel(this.myInfo, payload as RequestSendMessageChannel);
-                await this.broadcastInChannel(type, payload.channelId, newMessage)
+            }
+            case 'ChannelSendMessage': {
+                const result = await this.channelSendMessage(payload as RequestSendMessageChannel);
+                await this.broadcastInChannel(uid, type, payload.channelId, result as ResponseSendMessageChannel)
                 break;
-            case 'ChannelGetMessage':
-                this.sendMessage(type,
-                    await this.channelMessageService.getMessageFrom(payload as RequestMessageChannel, config.messageSize)
-                );
+            }
+            case 'ChannelGetMessage': {
+                const result = await this.channelGetMessage(payload as RequestGetMessageChannel);
+                this.sendTelegram(uid, type, result);
                 break;
+            }
             case 'MyChannelList':
-                this.sendMessage(type,
-                    await this.channelService.getAllChannelList() as ResponseChannelList
-                );
+            {
+                const result = await this.myChannelList();
+                this.sendTelegram(uid, type, result);
                 break;
+            }
             default:
                 console.warn(`Unknown message type: ${type}`);
                 break;
         }
     }
 
-    private sendMessage(type: string, payload: any = null) {
-        this.clientSocket.sendMessage(type, payload)
-    }
 
-    private async broadcastInChannel(type: string, channelId: string, payload: any = null) {
-        const channel = await this.channelService.getChannel(channelId)
-        const userList = channel.userIdList
-        for (let i = 0; i < userList.length; i++) {
-            const userId = userList[i];
-            const user = connectionUserList.get(userId)
-            if (user) {
-                user.sendMessage(type, payload)
-            }
+    private async signupUser(payload: RequestSignup) : Promise<ResponseSignup> {
+        if (payload === null || payload.id === null || payload.password === null)
+            throw new Error('payload is null')
+
+        const {user, auth} = await this.userService.signupUser(payload.id, payload.password);
+
+        this.currentUser = user;
+        this.addConnectionUserList(auth.password, this);
+        return {
+            token: auth.password,
+            user: user
         }
     }
 
-    private sendPing() {
-        this.missedPongs += 1;
-        this.sendMessage('ping');
+    private async loginUser(payload: RequestLogin) : Promise<ResponseLogin> {
+        if (payload === null || payload.id === null || payload.password === null)
+            throw new Error('payload is null')
 
-        if (this.missedPongs === 1)
-            this.pingTime = Date.now()
-        console.log(`Ping sent. Missed pongs: ${this.missedPongs}`)
+        const { user, auth } = await this.userService.loginUser(payload.id, payload.password);
+        this.currentUser = user;
+        this.addConnectionUserList(auth.password, this);
+        return {
+            token: auth.password,
+            user: user
+        };
+    }
+
+    private async changeUser(payload: RequestChangeUser) : Promise<ResponseChangeUser> {
+        if (this.currentUser === null)
+            throw new Error('currentUser is null')
+        await this.userService.changeUser(this.currentUser, payload.nickname, payload.emoji);
+        return {
+            user: this.currentUser as UserDto
+        }
+    }
+
+    private async myInfo() : Promise<ResponseMyInfo> {
+        if (this.currentUser === null)
+            throw new Error('currentUser is null')
+        return {
+            user: this.currentUser as UserDto
+        }
+    }
+    private async channelList() : Promise<ResponseChannelList> {
+        const result = await this.channelService.getAllChannelList();
+        return {
+            channelList: result as ChannelDto[]
+        }
+    }
+    private async channelCreate(payload: RequestCreateChannel) : Promise<ResponseCreateChannel> {
+        if (this.currentUser === null)
+            throw new Error('myInfo is null')
+
+        const newChannel = await this.channelService.createChannel(this.currentUser, payload.channelName);
+        const message = await this.channelMessageService.createChannelMessage(newChannel.id, this.currentUser!, payload.channelName);
+        return {
+            channel: newChannel,
+            message: message
+        }
+    }
+
+    private async channelView(payload: RequestViewChannel) : Promise<ResponseViewChannel> {
+        const result = await this.channelService.getChannelWithUserList(payload.channelId)
+        return {
+            channel: result.channel,
+            userList: result.userList
+        }
+    }
+
+    private async channelJoin(payload: RequestJoinChannel) : Promise<ResponseJoinChannel> {
+        if (this.currentUser === null)
+            throw new Error('myInfo is null')
+
+        await this.channelService.joinChannel(this.currentUser, payload.channelId);
+        const joinChannelMessage = await this.channelMessageService.joinChannelMessage(this.currentUser!, payload.channelId);
+        return {
+            message: joinChannelMessage
+        }
+    }
+
+    private async channelLeave(payload: RequestLeaveChannel) : Promise<ResponseLeaveChannel> {
+        const channel = await this.channelService.leaveChannel(this.currentUser, payload as RequestLeaveChannel);
+        const leaveChannelMessage = await this.channelMessageService.leaveChannelMessage(this.currentUser!, payload.channelId);
+        return {
+            channel: channel as ChannelDto,
+            message: leaveChannelMessage
+        }
+    }
+    private async channelSendMessage(payload:RequestSendMessageChannel) : Promise<ResponseSendMessageChannel> {
+        if (this.currentUser === null)
+            throw new Error('myInfo is null')
+
+        const message = await this.channelMessageService.addMessageChannel(this.currentUser, payload.channelId, payload.message);
+        return {
+            message: message as MessageDto,
+            user: this.currentUser as UserDto
+        }
+    }
+
+    private async channelGetMessage(payload:RequestGetMessageChannel) : Promise<ResponseGetMessageChannel> {
+        const messageList =
+            await this.channelMessageService.getMessageFrom(payload.channelId, '', config.messageSize)
+
+        return {
+            messageList: messageList.map((messageItem: MessageItem) => {
+                return {
+                    channelId: payload.channelId,
+                    type: messageItem.type,
+                    content: messageItem.content,
+                    userId: messageItem.userId,
+                    date: messageItem.date
+                } as MessageDto
+            })
+        }
+    }
+
+    private async myChannelList() : Promise<ResponseChannelList> {
+        const result = await this.channelService.getAllChannelList()
+        return {
+            channelList: result as ChannelDto[]
+        }
     }
 
 
-    private startPingPongChecker(): void {
-        this.pingInterval = setInterval(() => {
-            if (this.missedPongs >= this.limitMissedPongs) {
-                console.log(`No pong response ${this.limitMissedPongs} times. Closing connection.`);
-                this.clientSocket.terminate(); // close the connection
-                return;
-            }
-            this.sendPing()
-        }, this.pingIntervalTime);
-    }
 
+    private async broadcastInChannel(uid: string, type: string, channelId: string, payload: any = null) {
+        const channel = await this.channelService.getChannel(channelId)
+        const userList = channel.userIdList
+        this.broadcast(uid, userList, type, payload)
+    }
 }
 
 export = MessageController

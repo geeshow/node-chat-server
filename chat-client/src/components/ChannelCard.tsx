@@ -1,8 +1,7 @@
-import {ResponseUserInfo} from "../../../src/dto/UserDto";
-import {ResponseChannel} from "../../../src/dto/ChannelDto";
+import {ChannelDto} from "../../../src/dto/DefaultDto";
 
 interface ChannelProps {
-    channel: ResponseChannel;
+    channel: ChannelDto;
     view: (channelId: string) => void;
 }
 const ChannelCard: React.FC<ChannelProps> = ({ channel, view}) => {

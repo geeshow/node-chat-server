@@ -6,8 +6,7 @@ export interface User extends BaseEntity {
     nickname: string;
     lastLogin: Date;
 }
-
-const dataList: Map<string, User> = new Map();
+const dataList = new Map();
 
 export class UserRepository extends MapRepository<User> {
     constructor() {

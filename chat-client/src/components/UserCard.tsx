@@ -1,7 +1,7 @@
-import {ResponseUserInfo} from "../../../src/dto/UserDto";
+import {UserDto} from "../../../src/dto/DefaultDto";
 
 interface UserCardProps {
-    user: ResponseUserInfo;
+    user: UserDto;
 }
 const UserCard: React.FC<UserCardProps> = ({ user }) => {
     return (

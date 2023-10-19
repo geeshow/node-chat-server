@@ -1,9 +1,10 @@
-import React, {useContext, useEffect, useState} from 'react';
-import {useRecoilState, useRecoilValue} from "recoil";
-import {isLoginState, userState} from "../../store/recoilState";
+import React, {useContext, useState} from 'react';
+import {useRecoilState} from "recoil";
+import {userState} from "../../store/recoilState";
 import EmojiSelector from "../../components/EmojiSelector";
-import WebSocketContext, {WebSocketContextType} from "../../WebSocketProvider";
+import WebSocketContext from "../../websocket/WebSocketProvider";
 import {useNavigate} from "react-router-dom";
+import {WebSocketContextType} from "../../websocket/WebSocketContextType";
 
 const MyInfoChange = () => {
     const navigate = useNavigate();
@@ -11,7 +12,7 @@ const MyInfoChange = () => {
     const [emoji, setEmoji] = useState(user.emoji);
     const [nickname, setNickname] = useState(user.nickname);
     const [ showEmojiList, setShowEmojiList ] = useState(false);
-    const { ChangeUser } = useContext(WebSocketContext) as WebSocketContextType;
+    const { WSChangeUser } = useContext(WebSocketContext) as WebSocketContextType;
 
     const handleEmojiSelect = (selectedEmoji: React.SetStateAction<string>) => {
         setEmoji(selectedEmoji);
@@ -19,7 +20,7 @@ const MyInfoChange = () => {
     };
 
     const requestChangeUser = () => {
-        ChangeUser(nickname, emoji)
+        WSChangeUser(nickname, emoji)
         navigate('/my-info');
     }
 

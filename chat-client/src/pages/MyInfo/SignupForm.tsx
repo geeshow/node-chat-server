@@ -1,6 +1,7 @@
 import React, {useContext, useState} from 'react';
 import styled from 'styled-components';
-import WebSocketContext, {WebSocketContextType} from "../../WebSocketProvider";
+import WebSocketContext from "../../websocket/WebSocketProvider";
+import {WebSocketContextType} from "../../websocket/WebSocketContextType";
 
 const LoginButtons = styled.div`
     display: flex;
@@ -11,14 +12,14 @@ const LoginButtons = styled.div`
 const ChangeUserForm = () => {
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
-    const { SignupUser, LoginUser } = useContext(WebSocketContext) as WebSocketContextType;
+    const { WSSignupUser, WSLoginUser } = useContext(WebSocketContext) as WebSocketContextType;
 
     const requestSignupUser = () => {
-        SignupUser(id, password)
+        WSSignupUser(id, password)
     }
 
     const requestLoginUser = () => {
-        LoginUser(id, password)
+        WSLoginUser(id, password)
     }
 
     return (

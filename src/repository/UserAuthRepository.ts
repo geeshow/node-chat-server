@@ -5,11 +5,14 @@ export interface UserAuth extends BaseEntity {
     password: string;
 }
 
-const dataList: Map<string, UserAuth> = new Map();
+const dataList = new Map();
 
 export class UserAuthRepository extends MapRepository<UserAuth> {
     constructor() {
         super(dataList);
     }
 
+    public findOneByPassword(password: string) {
+        return this.findOne('password', password);
+    }
 }
