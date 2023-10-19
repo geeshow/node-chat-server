@@ -19,7 +19,7 @@ export class ChannelMessageRepository extends MapRepository<ChannelMessage> {
         super(dataList);
     }
 
-    public async init(payload: {channelId: string, type: string, content: string, userId: string}) {
+    public init(payload: {channelId: string, type: string, content: string, userId: string}) {
         const createMessage = {
             id: payload.channelId,
             message: [{
@@ -29,12 +29,12 @@ export class ChannelMessageRepository extends MapRepository<ChannelMessage> {
                 userId: payload.userId,
             }]
         } as ChannelMessage
-        await this.create(createMessage)
+        this.create(createMessage)
 
         return createMessage
     }
 
-    public async createMessage(payload: {channelId: string, type: string, content: string, userId: string}) {
+    public createMessage(payload: {channelId: string, type: string, content: string, userId: string}) {
         const channelMessage = this.findOneById(payload.channelId)
         if (!channelMessage) {
             throw new Error('Channel. not found')
@@ -52,7 +52,7 @@ export class ChannelMessageRepository extends MapRepository<ChannelMessage> {
         return newMessage
     }
 
-    async lastMessage(payload: { channelId: string, limit: number}): Promise<Array<MessageItem>> {
+    lastMessage(payload: { channelId: string, limit: number}): Array<MessageItem> {
         const channelMessage = this.findOneById(payload.channelId)
         if (channelMessage) {
             const result = []
@@ -67,7 +67,7 @@ export class ChannelMessageRepository extends MapRepository<ChannelMessage> {
         }
         return []
     }
-    async nextMessage(payload: { channelId: string, fromMessageId: string, limit: number}): Promise<Array<MessageItem>> {
+    nextMessage(payload: { channelId: string, fromMessageId: string, limit: number}): Array<MessageItem> {
         const channelMessage = this.findOneById(payload.channelId)
         if (channelMessage) {
             const result = []
@@ -84,7 +84,7 @@ export class ChannelMessageRepository extends MapRepository<ChannelMessage> {
         return []
     }
 
-    async prevMessage(payload: { channelId: string, fromMessageId: string, limit: number}): Promise<Array<MessageItem>> {
+    prevMessage(payload: { channelId: string, fromMessageId: string, limit: number}): Array<MessageItem> {
         const channelMessage = this.findOneById(payload.channelId)
         if (channelMessage) {
             const result = []

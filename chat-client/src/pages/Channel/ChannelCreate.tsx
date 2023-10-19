@@ -19,11 +19,14 @@ const ChannelCreate = () => {
     }
 
     return (
-        <section className={'common-section flex'}>
-            <input className={'common-input'} type="text" placeholder="Channel name" onChange={(event) => {
-                setChannelName(event.target.value);
-            }} />
-            <button className={'common-btn px-4 ml-2'} type="submit" onClick={requestCreateChannel}>Create</button>
+        <section className={'common-section flex flex-col'}>
+            <h1 className={'font-bold text-2xl'}>Create Channel</h1>
+            <div className={'flex'}>
+                <input className={'common-input'} type="text" placeholder="Channel name" onChange={(event) => {
+                    setChannelName(event.target.value);
+                }} />
+                <button className={'common-btn px-4 ml-2'} type="submit" onClick={requestCreateChannel}>Create</button>
+            </div>
         </section>
     );
 };

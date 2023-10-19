@@ -1,5 +1,6 @@
 import { atom, selector } from "recoil";
 import {ChannelDto, UserDto} from "../../../src/dto/DefaultDto";
+import {ResponseViewChannel} from "../../../src/dto/ResponseDto";
 
 export const requestWsState = atom({
     key: "requestWsState",
@@ -29,6 +30,11 @@ export const myChannelListState = atom({
 });
 
 export const channelCurrentIdState = atom({
-    key: "channelCurrentState",
+    key: "channelCurrentIdState",
     default: '' as string
+});
+
+export const currentChannelState = atom({
+    key: "currentChannelState",
+    default: {} as ResponseViewChannel
 });

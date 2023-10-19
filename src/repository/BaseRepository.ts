@@ -53,10 +53,10 @@ export class MapRepository<T> {
         return result
     }
 
-    findOne(key: string, findValue: string): T | null {
+    findOne(findKey: string, findValue: string): T | null {
         const entries = this.dataList.entries() as any
         for (const [key, value] of entries) {
-            if (value[key] === findValue) {
+            if (value[findKey] === findValue) {
                 return value;
             }
         }

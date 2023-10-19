@@ -1,17 +1,18 @@
-// useLocalStorage.js
 import {useCallback, useEffect, useState} from 'react';
 import {v4 as uuidv4} from "uuid";
 import {RequestDto} from "../../../src/dto/WebMessageDto";
 import {useRecoilState} from "recoil";
 import {requestWsState} from "../store/recoilState";
+import useLocalStorage from "./useLocalStorage";
 
 const useWebSocket = (url: string) => {
     const [socket, setSocket] = useState(null as any);
     const [requestWs, setRequestWsState] = useRecoilState(requestWsState);
     const [messages, setMessages] = useState([] as RequestDto[]);
+    const [token, setToken] = useLocalStorage('token', '');
 
     useEffect(() => {
-        const ws = new WebSocket(url);
+        const ws = token ? new WebSocket(url, token) : new WebSocket(url);
 
         ws.onopen = () => {
             setSocket(ws as WebSocket);

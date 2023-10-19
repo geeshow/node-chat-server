@@ -1,4 +1,3 @@
-// useLocalStorage.js
 import { useState } from 'react';
 
 function useLocalStorage(key: string, initialValue: any) {

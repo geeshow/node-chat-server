@@ -36,14 +36,12 @@ class WebSocketHandler {
             const parsedMessage = JSON.parse(message) as RequestDto;
             console.log('>>>>>', parsedMessage)
             if (parsedMessage.type) {
-                this.messageController.receiveMessage(parsedMessage.uid, parsedMessage.type, parsedMessage.payload)
-                    .then((result) => {
-                        console.log('result', result)
-                    })
-                    .catch((e) => {
-                        console.error(e);
-                        this.sendMessage(parsedMessage.uid, 'error', {message: e.message})
-                    });
+                try {
+                    this.messageController.receiveMessage(parsedMessage.uid, parsedMessage.type, parsedMessage.payload)
+                } catch(error: any) {
+                    console.error(error);
+                    this.sendMessage(parsedMessage.uid, 'error', {message: error.message})
+                }
             } else {
                 console.warn('Invalid message format:', message);
             }

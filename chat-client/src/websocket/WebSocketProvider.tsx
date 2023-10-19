@@ -1,13 +1,18 @@
 import React, {createContext, useEffect} from 'react';
 import {useRecoilState, useSetRecoilState} from "recoil";
-import {channelListState, myChannelListState, userState} from "../store/recoilState";
+import {
+    channelListState,
+    currentChannelState,
+    myChannelListState,
+    userState
+} from "../store/recoilState";
 import {
     ResponseChangeUser,
     ResponseChannelList,
     ResponseCreateChannel,
     ResponseLogin,
     ResponseMyChannelList,
-    ResponseSignup
+    ResponseSignup, ResponseViewChannel
 } from "../../../src/dto/ResponseDto";
 import {
     RequestChangeUser,
@@ -21,13 +26,16 @@ import {
 } from "../../../src/dto/RequestDto";
 import {WebSocketContextType} from "./WebSocketContextType";
 import useWebSocket from "../hooks/useWebSocket";
+import useLocalStorage from "../hooks/useLocalStorage";
 
 const WebSocketContext : any = createContext(null);
 
 export const WebSocketProvider = ({ host, children }: any) => {
     const [user, setUser] = useRecoilState(userState);
-    const [channelList, setChannelList] = useRecoilState(channelListState);
+    const setChannelList = useSetRecoilState(channelListState);
     const setMyChannelList = useSetRecoilState(myChannelListState);
+    const setCurrentChannel = useSetRecoilState(currentChannelState);
+    const [token, setToken] = useLocalStorage('token', '');
     const { messages, sendMessage } = useWebSocket(host);
 
     useEffect(() => {
@@ -37,7 +45,6 @@ export const WebSocketProvider = ({ host, children }: any) => {
         if (messages.length === 0) return;
 
         const receivedData = messages[messages.length - 1];
-        console.log('receivedData', receivedData);
         if (receivedData.type === "Ping") {
             sendMessage({
                 type: "Pong",
@@ -47,10 +54,17 @@ export const WebSocketProvider = ({ host, children }: any) => {
         else if (receivedData.type === "SignupUser") {
             const response = receivedData.payload as ResponseSignup;
             setUser(response.user);
+            setToken(response.token);
         }
         else if (receivedData.type === "LoginUser") {
             const response = receivedData.payload as ResponseLogin;
             setUser(response.user);
+            setToken(response.token);
+        }
+        else if (receivedData.type === "ReConnection") {
+            const response = receivedData.payload as ResponseLogin;
+            setUser(response.user);
+            setToken(response.token);
         }
         else if (receivedData.type === "ChangeUser") {
             const response = receivedData.payload as ResponseChangeUser;
@@ -61,10 +75,13 @@ export const WebSocketProvider = ({ host, children }: any) => {
             const response = receivedData.payload as ResponseChannelList;
             setChannelList(response.channelList);
         }
+        else if (receivedData.type === "ChannelView") {
+            const response = receivedData.payload as ResponseViewChannel;
+            setCurrentChannel(response);
+        }
         else if (receivedData.type === "ChannelCreate") {
             const response = receivedData.payload as ResponseCreateChannel;
             alert(response.message.content);
-            console.log('ChannelCreate', channelList, response.channel);
             setChannelList((prevChannelList) => [...prevChannelList, response.channel]);
         }
         else if (receivedData.type === "MyChannelList") {

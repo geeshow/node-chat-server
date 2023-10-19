@@ -4,18 +4,16 @@ import ChannelList from "./ChannelList";
 import ChannelCreate from "./ChannelCreate";
 
 const Channel = () => {
-    useEffect(() => {
-        // ChannelList();
-        console.log('Channel')
-    }, []);
     return (
         <div className={'common-page'}>
             <div className={'flex flex-row'}>
-                <div className={'flex flex-col'}>
+                <div className={'flex flex-col mr-3 w-96 h-96'}>
                     <ChannelList />
                     <ChannelCreate />
                 </div>
-                <ChannelView />
+                <div className={'w-96 h-96'}>
+                    <ChannelView />
+                </div>
             </div>
         </div>
     );

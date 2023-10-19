@@ -29,6 +29,7 @@ const ChannelList = () => {
     }
     return (
         <section className={'common-section'}>
+            <h1 className={'font-bold text-2xl'}>Channel List</h1>
             { renderChannelList() }
         </section>
     );

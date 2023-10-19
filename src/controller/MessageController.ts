@@ -43,15 +43,12 @@ class MessageController extends WebsocketController {
         this.userStatus = USER_STATUS.CONNECTED;
         if (token) {
             if (this.currentUser === null) {
-                const user = this.userService.getUserByToken(token);
-                if (user !== null) {
-                    this.currentUser = user;
-                }
+                this.reConnection(token)
             }
         }
     }
 
-    public async receiveMessage(uid: string, type: string, payload: any = null) {
+    public receiveMessage(uid: string, type: string, payload: any = null) {
         switch (type) {
             case 'Ping':
                 this.ping()
@@ -60,63 +57,63 @@ class MessageController extends WebsocketController {
                 this.pong();
                 break;
             case 'SignupUser': {
-                const result = await this.signupUser(payload as RequestSignup);
+                const result = this.signupUser(payload as RequestSignup);
                 this.sendTelegram(uid, type, result as ResponseSignup)
                 break;
             }
             case 'LoginUser': {
-                const result = await this.loginUser(payload as RequestLogin);
+                const result = this.loginUser(payload as RequestLogin);
                 this.sendTelegram(uid, type, result as ResponseLogin)
                 break;
             }
             case 'ChangeUser': {
-                const result = await this.changeUser(payload as RequestChangeUser);
+                const result = this.changeUser(payload as RequestChangeUser);
                 this.sendTelegram(uid, type, result as ResponseChangeUser)
                 break;
             }
             case 'MyInfo': {
-                const result = await this.myInfo();
+                const result = this.myInfo();
                 this.sendTelegram(uid, type, result as ResponseMyInfo)
                 break;
             }
             case 'ChannelList': {
-                const result = await this.channelList();
+                const result = this.channelList();
                 this.sendTelegram(uid, type, result as ResponseChannelList);
                 break;
             }
             case 'ChannelCreate': {
-                const result = await this.channelCreate(payload as RequestCreateChannel);
+                const result = this.channelCreate(payload as RequestCreateChannel);
                 this.broadcastAllConnection(uid, type, result as ResponseCreateChannel);
                 break;
             }
             case 'ChannelView': {
-                const result = await this.channelView(payload as RequestViewChannel);
+                const result = this.channelView(payload as RequestViewChannel);
                 this.sendTelegram(uid, type, result as ResponseViewChannel);
                 break;
             }
             case 'ChannelJoin': {
-                const result = await this.channelJoin(payload as RequestJoinChannel);
-                await this.broadcastInChannel(uid, type, payload.channelId, result as ResponseJoinChannel)
+                const result = this.channelJoin(payload as RequestJoinChannel);
+                this.broadcastInChannel(uid, type, payload.channelId, result as ResponseJoinChannel)
                 break;
             }
             case 'ChannelLeave': {
-                const result = await this.channelLeave(payload as RequestLeaveChannel);
-                await this.broadcastInChannel(uid, type, payload.channelId, result as ResponseLeaveChannel)
+                const result = this.channelLeave(payload as RequestLeaveChannel);
+                this.broadcastInChannel(uid, type, payload.channelId, result as ResponseLeaveChannel)
                 break;
             }
             case 'ChannelSendMessage': {
-                const result = await this.channelSendMessage(payload as RequestSendMessageChannel);
-                await this.broadcastInChannel(uid, type, payload.channelId, result as ResponseSendMessageChannel)
+                const result = this.channelSendMessage(payload as RequestSendMessageChannel);
+                this.broadcastInChannel(uid, type, payload.channelId, result as ResponseSendMessageChannel)
                 break;
             }
             case 'ChannelGetMessage': {
-                const result = await this.channelGetMessage(payload as RequestGetMessageChannel);
+                const result = this.channelGetMessage(payload as RequestGetMessageChannel);
                 this.sendTelegram(uid, type, result);
                 break;
             }
             case 'MyChannelList':
             {
-                const result = await this.myChannelList();
+                const result = this.myChannelList();
                 this.sendTelegram(uid, type, result);
                 break;
             }
@@ -127,11 +124,11 @@ class MessageController extends WebsocketController {
     }
 
 
-    private async signupUser(payload: RequestSignup) : Promise<ResponseSignup> {
+    private signupUser(payload: RequestSignup) : ResponseSignup {
         if (payload === null || payload.id === null || payload.password === null)
             throw new Error('payload is null')
 
-        const {user, auth} = await this.userService.signupUser(payload.id, payload.password);
+        const {user, auth} = this.userService.signupUser(payload.id, payload.password);
 
         this.currentUser = user;
         this.addConnectionUserList(auth.password, this);
@@ -141,11 +138,11 @@ class MessageController extends WebsocketController {
         }
     }
 
-    private async loginUser(payload: RequestLogin) : Promise<ResponseLogin> {
+    private loginUser(payload: RequestLogin) : ResponseLogin {
         if (payload === null || payload.id === null || payload.password === null)
             throw new Error('payload is null')
 
-        const { user, auth } = await this.userService.loginUser(payload.id, payload.password);
+        const { user, auth } = this.userService.loginUser(payload.id, payload.password);
         this.currentUser = user;
         this.addConnectionUserList(auth.password, this);
         return {
@@ -154,81 +151,94 @@ class MessageController extends WebsocketController {
         };
     }
 
-    private async changeUser(payload: RequestChangeUser) : Promise<ResponseChangeUser> {
+    private reConnection(token: string) {
+        const userData = this.userService.getUserByToken(token);
+        if (userData !== null) {
+            this.currentUser = userData.user;
+            this.addConnectionUserList(token, this);
+            const payload = {
+                token: token,
+                user: userData.user
+            } as ResponseLogin
+            this.sendTelegram(token, 'ReConnection', payload)
+        }
+    }
+
+    private changeUser(payload: RequestChangeUser) : ResponseChangeUser {
         if (this.currentUser === null)
             throw new Error('currentUser is null')
-        await this.userService.changeUser(this.currentUser, payload.nickname, payload.emoji);
+        this.userService.changeUser(this.currentUser, payload.nickname, payload.emoji);
         return {
             user: this.currentUser as UserDto
         }
     }
 
-    private async myInfo() : Promise<ResponseMyInfo> {
+    private myInfo() : ResponseMyInfo {
         if (this.currentUser === null)
             throw new Error('currentUser is null')
         return {
             user: this.currentUser as UserDto
         }
     }
-    private async channelList() : Promise<ResponseChannelList> {
-        const result = await this.channelService.getAllChannelList();
+    private channelList() : ResponseChannelList {
+        const result = this.channelService.getAllChannelList();
         return {
             channelList: result as ChannelDto[]
         }
     }
-    private async channelCreate(payload: RequestCreateChannel) : Promise<ResponseCreateChannel> {
+    private channelCreate(payload: RequestCreateChannel) : ResponseCreateChannel {
         if (this.currentUser === null)
             throw new Error('myInfo is null')
 
-        const newChannel = await this.channelService.createChannel(this.currentUser, payload.channelName);
-        const message = await this.channelMessageService.createChannelMessage(newChannel.id, this.currentUser!, payload.channelName);
+        const newChannel = this.channelService.createChannel(this.currentUser, payload.channelName);
+        const message = this.channelMessageService.createChannelMessage(newChannel.id, this.currentUser!, payload.channelName);
         return {
             channel: newChannel,
             message: message
         }
     }
 
-    private async channelView(payload: RequestViewChannel) : Promise<ResponseViewChannel> {
-        const result = await this.channelService.getChannelWithUserList(payload.channelId)
+    private channelView(payload: RequestViewChannel) : ResponseViewChannel {
+        const result = this.channelService.getChannelWithUserList(payload.channelId)
         return {
             channel: result.channel,
             userList: result.userList
         }
     }
 
-    private async channelJoin(payload: RequestJoinChannel) : Promise<ResponseJoinChannel> {
+    private channelJoin(payload: RequestJoinChannel) : ResponseJoinChannel {
         if (this.currentUser === null)
             throw new Error('myInfo is null')
 
-        await this.channelService.joinChannel(this.currentUser, payload.channelId);
-        const joinChannelMessage = await this.channelMessageService.joinChannelMessage(this.currentUser!, payload.channelId);
+        this.channelService.joinChannel(this.currentUser, payload.channelId);
+        const joinChannelMessage = this.channelMessageService.joinChannelMessage(this.currentUser!, payload.channelId);
         return {
             message: joinChannelMessage
         }
     }
 
-    private async channelLeave(payload: RequestLeaveChannel) : Promise<ResponseLeaveChannel> {
-        const channel = await this.channelService.leaveChannel(this.currentUser, payload as RequestLeaveChannel);
-        const leaveChannelMessage = await this.channelMessageService.leaveChannelMessage(this.currentUser!, payload.channelId);
+    private channelLeave(payload: RequestLeaveChannel) : ResponseLeaveChannel {
+        const channel = this.channelService.leaveChannel(this.currentUser, payload as RequestLeaveChannel);
+        const leaveChannelMessage = this.channelMessageService.leaveChannelMessage(this.currentUser!, payload.channelId);
         return {
             channel: channel as ChannelDto,
             message: leaveChannelMessage
         }
     }
-    private async channelSendMessage(payload:RequestSendMessageChannel) : Promise<ResponseSendMessageChannel> {
+    private channelSendMessage(payload:RequestSendMessageChannel) : ResponseSendMessageChannel {
         if (this.currentUser === null)
             throw new Error('myInfo is null')
 
-        const message = await this.channelMessageService.addMessageChannel(this.currentUser, payload.channelId, payload.message);
+        const message = this.channelMessageService.addMessageChannel(this.currentUser, payload.channelId, payload.message);
         return {
             message: message as MessageDto,
             user: this.currentUser as UserDto
         }
     }
 
-    private async channelGetMessage(payload:RequestGetMessageChannel) : Promise<ResponseGetMessageChannel> {
+    private channelGetMessage(payload:RequestGetMessageChannel) : ResponseGetMessageChannel {
         const messageList =
-            await this.channelMessageService.getMessageFrom(payload.channelId, '', config.messageSize)
+            this.channelMessageService.getMessageFrom(payload.channelId, '', config.messageSize)
 
         return {
             messageList: messageList.map((messageItem: MessageItem) => {
@@ -243,8 +253,8 @@ class MessageController extends WebsocketController {
         }
     }
 
-    private async myChannelList() : Promise<ResponseChannelList> {
-        const result = await this.channelService.getAllChannelList()
+    private myChannelList() : ResponseChannelList {
+        const result = this.channelService.getAllChannelList()
         return {
             channelList: result as ChannelDto[]
         }
@@ -252,8 +262,8 @@ class MessageController extends WebsocketController {
 
 
 
-    private async broadcastInChannel(uid: string, type: string, channelId: string, payload: any = null) {
-        const channel = await this.channelService.getChannel(channelId)
+    private broadcastInChannel(uid: string, type: string, channelId: string, payload: any = null) {
+        const channel = this.channelService.getChannel(channelId)
         const userList = channel.userIdList
         this.broadcast(uid, userList, type, payload)
     }

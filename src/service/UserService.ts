@@ -11,7 +11,7 @@ class UserService {
         hash.update(id + password + 'salt');
         return id + hash.digest('hex');
     }
-    public async signupUser(id: string, password: string) {
+    public signupUser(id: string, password: string) {
         const userAuth = this.userAuthRepository.findOneById(id)
         const user = this.userRepository.findOneById(id)
 
@@ -39,7 +39,7 @@ class UserService {
             }
         }
     }
-    public async loginUser(id: string, password: string) {
+    public loginUser(id: string, password: string) {
         const userAuth = this.userAuthRepository.findOneById(id)
         const user = this.userRepository.findOneById(id)
 
@@ -61,11 +61,14 @@ class UserService {
     public getUserByToken(token: string) {
         const userAuth = this.userAuthRepository.findOneByPassword(token)
         if (userAuth) {
-            return this.userRepository.findOneById(userAuth.id)
+            return {
+                userAuth,
+                user: this.userRepository.findOneById(userAuth.id)
+            }
         }
         return null
     }
-    public async changeUser(user: User, nickname: string, emoji: string) {
+    public changeUser(user: User, nickname: string, emoji: string) {
         if (user) {
             user.nickname = nickname
             user.emoji = emoji
