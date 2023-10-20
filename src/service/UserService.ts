@@ -61,9 +61,12 @@ class UserService {
     public getUserByToken(token: string) {
         const userAuth = this.userAuthRepository.findOneByPassword(token)
         if (userAuth) {
-            return {
-                userAuth,
-                user: this.userRepository.findOneById(userAuth.id)
+            const user = this.userRepository.findOneById(userAuth.id)
+            if (user) {
+                return {
+                    user,
+                    auth: userAuth
+                }
             }
         }
         return null

@@ -3,6 +3,7 @@ import {User} from "./UserRepository";
 
 export interface MyChannel extends BaseEntity {
     id: string;
+    userId: string;
     channelId: string;
 }
 

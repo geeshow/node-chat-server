@@ -26,6 +26,12 @@ class ChannelService {
             } as Channel
             this.channelRepository.create(newChannel);
 
+            this.myChannelRepository.create({
+                id: myInfo.id + Date.now(),
+                userId: myInfo.id,
+                channelId: channelId
+            } as MyChannel);
+
             return {
                 id: channelId,
                 channelName: channelName,
@@ -40,6 +46,7 @@ class ChannelService {
         } else {
             this.myChannelRepository.create({
                 id: myInfo.id + Date.now(),
+                userId: myInfo.id,
                 channelId: channelId
             } as MyChannel);
             channel.userIdList.push(myInfo.id)
@@ -80,8 +87,8 @@ class ChannelService {
         }
         return result as ChannelDto[]
     }
-    public getMyChannelList(): ChannelDto[] {
-        const myChannelIds = this.myChannelRepository.listAll()
+    public getMyChannelList(user: User): ChannelDto[] {
+        const myChannelIds = this.myChannelRepository.find('userId', user.id)
         const list = this.channelRepository.listByIds(myChannelIds.map((myChannel) => myChannel.channelId))
         const result = []
         for (let i = 0; i < list.length; i++) {

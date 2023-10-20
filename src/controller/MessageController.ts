@@ -234,7 +234,7 @@ class MessageController extends WebsocketController {
     }
     private channelSendMessage(payload:RequestSendMessageChannel) : ResponseSendMessageChannel {
         if (this.currentUser === null)
-            throw new Error('myInfo is null')
+            throw new Error('Not found current user. Cannot send message.')
 
         const message = this.channelMessageService.addMessageChannel(this.currentUser, payload.channelId, payload.message);
         return {
@@ -261,7 +261,10 @@ class MessageController extends WebsocketController {
     }
 
     private myChannelList() : ResponseChannelList {
-        const result = this.channelService.getMyChannelList()
+        if (this.currentUser === null)
+            throw new Error('Not found current user. Cannot get my channel list.')
+
+        const result = this.channelService.getMyChannelList(this.currentUser)
         return {
             channelList: result as ChannelDto[]
         }

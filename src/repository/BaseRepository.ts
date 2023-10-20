@@ -81,6 +81,16 @@ export class MapRepository<T> {
         }
         return null
     }
+    find(findKey: string, findValue: string): Array<T> {
+        const entries = this.dataList.entries() as any
+        const result = []
+        for (const [key, value] of entries) {
+            if (value[findKey] === findValue) {
+                result.push(value)
+            }
+        }
+        return result
+    }
 
     deleteOne(findKey: string, findValue: string): T | null {
         const entries = this.dataList.entries() as any
