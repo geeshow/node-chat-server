@@ -9,7 +9,7 @@ export const requestWsState = atom({
 
 export const userState = atom({
     key: "userState",
-    default: {} as UserDto
+    default: {} as UserDto,
 });
 
 export const isLoginState = selector({
@@ -48,3 +48,16 @@ export const currentEnterChannelState = atom({
     default: {} as ResponseMyChannelView
 });
 
+export const lastMessageState = selector({
+    key: 'lastMessageState',
+    get: ({ get }) => {
+        const channel = get(currentEnterChannelState);
+        return channel.messageList[channel.messageList.length - 1];
+    },
+    set: ({ set }, newMessage) => {
+        set(currentEnterChannelState, (prevChannel) => ({
+            ...prevChannel,
+            messageList: [...prevChannel.messageList, newMessage]
+        } as ResponseMyChannelView));
+    }
+});

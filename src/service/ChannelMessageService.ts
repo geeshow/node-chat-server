@@ -54,6 +54,7 @@ class ChannelService {
             type: 'MESSAGE',
             content: message,
             userId: user.id,
+            date: new Date(),
         } as MessageDto
         this.channelMessageRepository.createMessage(newMessage)
 

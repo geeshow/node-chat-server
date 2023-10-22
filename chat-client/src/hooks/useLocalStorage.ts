@@ -13,7 +13,7 @@ function useLocalStorage(key: string, initialValue: any) {
     const setValue = (value: any) => {
         try {
             setStoredValue(value);
-            window.localStorage.setItem(key, JSON.stringify(value));
+            localStorage.setItem(key, JSON.stringify(value));
         } catch (error) {
             console.error(`Failed to set ${key} in localStorage: ${error}`);
         }

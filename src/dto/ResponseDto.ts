@@ -51,6 +51,6 @@ export interface ResponseMyChannelView {
 }
 
 export interface ResponseSendMessageChannel {
-    message: MessageDto ,
+    message: MessageDto,
     user: UserDto,
 }

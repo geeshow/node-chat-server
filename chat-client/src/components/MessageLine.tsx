@@ -24,44 +24,40 @@ const MessageLine: React.FC<MessageLineProps> = ({ user, message, prevMessage}) 
         if (user) {
             if (message.type === 'MESSAGE') {
                 return (
-                    <span className="text-2xl">
-                        {user ? user.emoji : '👻'}
-                        {user ? user.nickname : 'unknown'}
-                        {message.date.toString()}
-                    </span>
+                    <div className={'flex justify-between'}>
+                        <div>
+                            <span className="text-2xl">
+                                {user ? user.emoji : '👻'}
+                            </span>
+                            <span className="text-xl">
+                                {user ? user.nickname : 'unknown'}
+                            </span>
+                        </div>
+                        <span className="text-slate-500 align-bottom">
+                            {message.date.toString().substring(11, 16)}
+                        </span>
+                    </div>
                 )
             }
-            return (
-                <span className="text-2xl">
-                    🤖 System Message
-                </span>
-            )
+            return (<> </>)
         }
     }, [user, message, prevMessage]);
 
     return (
-        <div>
-            { !isSameUser &&
-                <div className="mb-2 " />
-            }
-            <div className="py-2 px-2 max-w-full w-full mx-auto bg-white sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
-                <div className="flex justify-between w-full text-center space-y-2 sm:text-left">
-                    { message.type === 'MESSAGE'
-                        ? <div className="space-y-0.5">
-                            { !isSameUser && userInfo }
-                            <p className="text-slate-500 font-medium">
-                                {message.content}
-                            </p>
-                        </div>
-                        : <div className="space-y-0.5">
-                            { !isSameUser && userInfo }
-                            <p className="text-slate-500 font-medium">
-                                {message.content}
-                            </p>
-                        </div>
-                    }
+        <div className="flex flex-col max-w-full w-full mx-auto bg-white text-center space-y-2 sm:text-left">
+            { !isSameUser && message.type === 'MESSAGE' && userInfo }
+            { message.type === 'MESSAGE' ?
+                <div className="space-y-0.5">
+                    <p className="text-slate-500 font-medium">
+                        {message.content}
+                    </p>
                 </div>
-            </div>
+                : <div className="flex pb-1">
+                    <p className="text-slate-500 font-medium rounded bg-blue-100">
+                        {message.content}
+                    </p>
+                </div>
+            }
         </div>
     )
 }

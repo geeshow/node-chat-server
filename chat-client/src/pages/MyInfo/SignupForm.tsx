@@ -3,12 +3,6 @@ import styled from 'styled-components';
 import WebSocketContext from "../../websocket/WebSocketProvider";
 import {WebSocketContextType} from "../../websocket/WebSocketContextType";
 
-const LoginButtons = styled.div`
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-`;
-
 const ChangeUserForm = () => {
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
@@ -30,10 +24,10 @@ const ChangeUserForm = () => {
             <input className={'common-input my-2'} type="password" placeholder="password"  onChange={(event) => {
                 setPassword(event.target.value);
             }} />
-            <LoginButtons>
+            <div className={'flex justify-between mt-2'}>
                 <button className={'common-btn px-12'} type="submit" onClick={requestSignupUser}>Signup</button>
                 <button className={'common-btn px-12'} type="submit" onClick={requestLoginUser}>Login</button>
-            </LoginButtons>
+            </div>
         </section>
     );
 };

@@ -2,24 +2,31 @@ import React, {createContext, useEffect} from 'react';
 import {useRecoilState, useSetRecoilState} from "recoil";
 import {
     channelListState,
-    currentChannelState, currentEnterChannelState,
+    currentChannelState,
+    currentEnterChannelState,
+    lastMessageState,
     myChannelListState,
     userState
 } from "../store/recoilState";
 import {
     ResponseChangeUser,
     ResponseChannelList,
-    ResponseCreateChannel, ResponseJoinChannel,
+    ResponseCreateChannel,
+    ResponseJoinChannel,
     ResponseLogin,
-    ResponseMyChannelList, ResponseMyChannelView,
-    ResponseSignup, ResponseViewChannel
+    ResponseMyChannelList,
+    ResponseMyChannelView,
+    ResponseSendMessageChannel,
+    ResponseSignup,
+    ResponseViewChannel
 } from "../../../src/dto/ResponseDto";
 import {
     RequestChangeUser,
     RequestCreateChannel,
     RequestJoinChannel,
     RequestLeaveChannel,
-    RequestLogin, RequestMyChannelView,
+    RequestLogin,
+    RequestMyChannelView,
     RequestSendMessageChannel,
     RequestSignup,
     RequestViewChannel
@@ -36,6 +43,7 @@ export const WebSocketProvider = ({ host, children }: any) => {
     const setMyChannelList = useSetRecoilState(myChannelListState);
     const setCurrentChannel = useSetRecoilState(currentChannelState);
     const setCurrentEnterChannel = useSetRecoilState(currentEnterChannelState);
+    const setLastMessage = useSetRecoilState(lastMessageState);
     const [token, setToken] = useLocalStorage('token', '');
     const { messages, sendMessage } = useWebSocket(host);
 
@@ -213,6 +221,10 @@ export const WebSocketProvider = ({ host, children }: any) => {
         else if (receivedData.type === "MyChannelView") {
             const response = receivedData.payload as ResponseMyChannelView;
             setCurrentEnterChannel(response);
+        }
+        else if (receivedData.type === "ChannelSendMessage") {
+            const response = receivedData.payload as ResponseSendMessageChannel;
+            setLastMessage(response.message);
         }
         else if (receivedData.type === "error") {
             alert(receivedData.payload.message);

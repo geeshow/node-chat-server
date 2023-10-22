@@ -6,14 +6,13 @@ interface UserSmallCardProps {
 }
 const UserSmallCard: React.FC<UserSmallCardProps> = ({ user , isHost}) => {
     return (
-        <div className="mb-2 py-2 px-2 max-w-sm bg-white rounded-xl shadow-lg sm:py-2 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
-            <span className="text-2xl">
+        <div className="max-w-sm bg-white sm:flex sm:items-center">
+            <span>
                 {user.emoji}
+            </span>
+            <span className={isHost ? "font-bold after:content-['(host)']" : ""}>
                 {user.nickname}
             </span>
-            {isHost &&
-                <span className={'bg-amber-600 rounded text-white p-1 text-sm'}>HOST</span>
-            }
         </div>
     )
 }

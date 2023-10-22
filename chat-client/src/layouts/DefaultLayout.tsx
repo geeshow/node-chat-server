@@ -16,14 +16,12 @@ function DefaultLayout(parent: { children: ReactNode }) {
     }, []);
 
     return (
-        <div>
-            <div className='app'>
-                <div className='app-top'>
-                    <TopMenu currentPath={location.pathname} />
-                </div>
-                <div className='app-content'>
-                    {parent.children}
-                </div>
+        <div className='app h-screen'>
+            <div className='app-top h-14'>
+                <TopMenu currentPath={location.pathname} />
+            </div>
+            <div className='app-content h-5/6'>
+                {parent.children}
             </div>
         </div>
     );
