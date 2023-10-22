@@ -44,6 +44,11 @@ export interface ResponseGetMessageChannel {
 export interface ResponseMyChannelList {
     channelList: ChannelDto[];
 }
+export interface ResponseMyChannelView {
+    channel: ChannelDto;
+    userList: UserDto[]
+    messageList: MessageDto[]
+}
 
 export interface ResponseSendMessageChannel {
     message: MessageDto ,

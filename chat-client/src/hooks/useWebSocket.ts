@@ -12,7 +12,8 @@ const useWebSocket = (url: string) => {
     const [token, setToken] = useLocalStorage('token', '');
 
     useEffect(() => {
-        const ws = token ? new WebSocket(url, token) : new WebSocket(url);
+        console.log('token', token)
+        const ws = token ? new WebSocket(`${url}?token=${token}`) : new WebSocket(url);
 
         ws.onopen = () => {
             setSocket(ws as WebSocket);

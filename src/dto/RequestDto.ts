@@ -28,6 +28,9 @@ export interface RequestLeaveChannel {
 export interface RequestGetMessageChannel {
     channelId: string;
 }
+export interface RequestMyChannelView {
+    channelId: string;
+}
 
 export interface RequestSendMessageChannel {
     channelId: string;

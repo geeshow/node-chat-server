@@ -15,8 +15,8 @@ class WebsocketController {
         // this.startPingPongChecker();
     }
 
-    protected addConnectionUserList(userId: string, user: WebsocketController) {
-        connectionUserList.set(userId, user)
+    protected addConnectionUserList(token: string, user: WebsocketController) {
+        connectionUserList.set(token, user)
     }
 
     protected sendTelegram(uid: string, type: string, payload: any = null) {
@@ -33,7 +33,7 @@ class WebsocketController {
         }
     }
 
-    protected broadcast(uid: string, userIds: string[], type: string, channelId: string, payload: any = null) {
+    protected broadcast(uid: string, userIds: string[], type: string, payload: any = null) {
         for (let i = 0; i < userIds.length; i++) {
             const userId = userIds[i];
             const user = connectionUserList.get(userId)

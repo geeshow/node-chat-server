@@ -12,4 +12,5 @@ export interface WebSocketContextType {
     WSChannelSendMessage: (channelId: string, message: string) => void;
     WSChannelGetMessage: (channelId: string) => void;
     WSMyChannelList: () => void;
+    WSMyChannelView: (channelId: string) => void;
 }

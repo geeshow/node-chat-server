@@ -1,10 +1,9 @@
 import React, {useContext, useEffect, useState} from 'react';
 import WebSocketContext from "../../websocket/WebSocketProvider";
-import {useRecoilValue, useSetRecoilState} from "recoil";
-import {channelCurrentIdState, currentChannelState, isJoinChannelState, isLoginState} from "../../store/recoilState";
+import {useRecoilValue} from "recoil";
+import {currentChannelState, isJoinChannelState, isLoginState} from "../../store/recoilState";
 import {useNavigate} from "react-router-dom";
 import {WebSocketContextType} from "../../websocket/WebSocketContextType";
-import UserCard from "../../components/UserCard";
 import UserSmallCard from "../../components/UserSmallCard";
 
 interface ChannelViewProps {
@@ -36,6 +35,7 @@ const ChannelView:React.FC<ChannelViewProps> = ({ channelId }) => {
     }
 
     useEffect(() => {
+        console.log(isJoinChannel, doEnterChannel)
         if (isJoinChannel && doEnterChannel) {
             navigate(`/my-channels/${channelId}`);
         }
@@ -45,7 +45,7 @@ const ChannelView:React.FC<ChannelViewProps> = ({ channelId }) => {
         if (currentChannel.userList) {
             return currentChannel.userList.map((user) => {
                 return (
-                    <UserSmallCard user={user} isHost={currentChannel.channel.host.id === user.id} />
+                    <UserSmallCard key={user.id} user={user} isHost={currentChannel.channel.host.id === user.id} />
                 )
             });
         }
@@ -64,8 +64,8 @@ const ChannelView:React.FC<ChannelViewProps> = ({ channelId }) => {
             }
             <div className={'flex justify-end'}>
                 { isJoinChannel
-                   ? <button className={'common-btn px-4 ml-1'} onClick={() => joinChannel()}>Join</button>
-                   : <button className={'common-btn px-4 ml-1'} onClick={() => enterChannel()}>Enter</button> }
+                   ? <button className={'common-btn px-4 ml-1'} onClick={() => enterChannel()}>Enter</button>
+                   : <button className={'common-btn px-4 ml-1'} onClick={() => joinChannel()}>Join</button> }
                 <button className={'common-btn px-4 ml-1'} onClick={() => navigate('/channel/chat')}>Share</button>
             </div>
             <div className={'flex flex-col justify-start items-start mt-10'}>

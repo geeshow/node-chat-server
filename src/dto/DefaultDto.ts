@@ -1,3 +1,5 @@
+import {MessageType} from "../type/MessageType";
+
 export interface UserDto {
     id: string;
     emoji: string;
@@ -14,7 +16,7 @@ export interface ChannelDto {
 export interface MessageDto {
     id: string;
     channelId: string;
-    type: string;
+    type: MessageType;
     content: string;
     userId: string;
     date: Date;

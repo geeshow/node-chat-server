@@ -2,7 +2,7 @@ import React, {createContext, useEffect} from 'react';
 import {useRecoilState, useSetRecoilState} from "recoil";
 import {
     channelListState,
-    currentChannelState,
+    currentChannelState, currentEnterChannelState,
     myChannelListState,
     userState
 } from "../store/recoilState";
@@ -11,7 +11,7 @@ import {
     ResponseChannelList,
     ResponseCreateChannel, ResponseJoinChannel,
     ResponseLogin,
-    ResponseMyChannelList,
+    ResponseMyChannelList, ResponseMyChannelView,
     ResponseSignup, ResponseViewChannel
 } from "../../../src/dto/ResponseDto";
 import {
@@ -19,7 +19,7 @@ import {
     RequestCreateChannel,
     RequestJoinChannel,
     RequestLeaveChannel,
-    RequestLogin,
+    RequestLogin, RequestMyChannelView,
     RequestSendMessageChannel,
     RequestSignup,
     RequestViewChannel
@@ -35,6 +35,7 @@ export const WebSocketProvider = ({ host, children }: any) => {
     const setChannelList = useSetRecoilState(channelListState);
     const setMyChannelList = useSetRecoilState(myChannelListState);
     const setCurrentChannel = useSetRecoilState(currentChannelState);
+    const setCurrentEnterChannel = useSetRecoilState(currentEnterChannelState);
     const [token, setToken] = useLocalStorage('token', '');
     const { messages, sendMessage } = useWebSocket(host);
 
@@ -133,6 +134,14 @@ export const WebSocketProvider = ({ host, children }: any) => {
                 payload: null
             });
         },
+        WSMyChannelView: (channelId: string) => {
+            sendMessage({
+                type: "MyChannelView",
+                payload: {
+                    channelId
+                } as RequestMyChannelView
+            });
+        }
     } as WebSocketContextType
 
     useEffect(() => {
@@ -181,13 +190,29 @@ export const WebSocketProvider = ({ host, children }: any) => {
             const response = receivedData.payload as ResponseJoinChannel;
             if (response.user.id === user.id) {
                 alert(response.message.content);
-                setChannelList((prevChannelList) => [...prevChannelList, response.channel]);
+                setCurrentChannel((prevChannel) => {
+                    const newChannel = {
+                        channel: {
+                            ...prevChannel.channel
+                        },
+                        userList: [
+                            ...prevChannel.userList,
+                            response.user
+                        ]
+                    };
+                    console.log('test')
+                    return newChannel;
+                });
                 setMyChannelList((prevChannelList) => [...prevChannelList, response.channel]);
             }
         }
         else if (receivedData.type === "MyChannelList") {
             const response = receivedData.payload as ResponseMyChannelList;
             setMyChannelList(response.channelList);
+        }
+        else if (receivedData.type === "MyChannelView") {
+            const response = receivedData.payload as ResponseMyChannelView;
+            setCurrentEnterChannel(response);
         }
         else if (receivedData.type === "error") {
             alert(receivedData.payload.message);

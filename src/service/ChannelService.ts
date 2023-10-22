@@ -44,6 +44,9 @@ class ChannelService {
         if (!channel) {
             throw new Error('Channel data not found. Cannot join channel')
         } else {
+            if (channel.userIdList.indexOf(myInfo.id) > -1) {
+                throw new Error('Already joined channel')
+            }
             this.myChannelRepository.create({
                 id: myInfo.id + Date.now(),
                 userId: myInfo.id,

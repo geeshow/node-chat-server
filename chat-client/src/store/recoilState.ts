@@ -1,6 +1,6 @@
 import { atom, selector } from "recoil";
 import {ChannelDto, UserDto} from "../../../src/dto/DefaultDto";
-import {ResponseViewChannel} from "../../../src/dto/ResponseDto";
+import {ResponseMyChannelView, ResponseViewChannel} from "../../../src/dto/ResponseDto";
 
 export const requestWsState = atom({
     key: "requestWsState",
@@ -26,7 +26,7 @@ export const isJoinChannelState = selector({
         const channel = get(currentChannelState);
         if (user.id === '') return false;
         if (!channel.userList) return false;
-        return !channel.userList.find((userDto) => userDto.id === user.id);
+        return !!channel.userList.find((userDto) => userDto.id === user.id);
     }
 });
 
@@ -34,18 +34,17 @@ export const channelListState = atom({
     key: "channelListState",
     default: [] as ChannelDto[]
 });
+export const currentChannelState = atom({
+    key: "currentChannelState",
+    default: {} as ResponseViewChannel
+});
 export const myChannelListState = atom({
     key: "myChannelListState",
     default: [] as ChannelDto[]
 });
 
-export const channelCurrentIdState = atom({
-    key: "channelCurrentIdState",
-    default: '' as string
-});
-
-export const currentChannelState = atom({
-    key: "currentChannelState",
-    default: {} as ResponseViewChannel
+export const currentEnterChannelState = atom({
+    key: "currentEnterChannelState",
+    default: {} as ResponseMyChannelView
 });
 

@@ -1,35 +1,37 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 import WebSocketContext from "../../websocket/WebSocketProvider";
-import {useRecoilValue, useSetRecoilState} from "recoil";
-import {channelCurrentIdState, myChannelListState} from "../../store/recoilState";
+import {useRecoilValue} from "recoil";
+import {myChannelListState} from "../../store/recoilState";
 import ChannelCard from "../../components/ChannelCard";
 import {WebSocketContextType} from "../../websocket/WebSocketContextType";
+import {useNavigate} from "react-router-dom";
 
 
 const MyChannelList = () => {
-    const { WSMyChannelList } = useContext(WebSocketContext) as WebSocketContextType;
+    const navigate = useNavigate();
     const myChannelList = useRecoilValue(myChannelListState);
-    const setChannelCurrentId = useSetRecoilState(channelCurrentIdState);
-
+    const { WSMyChannelList } = useContext(WebSocketContext) as WebSocketContextType;
     useEffect(() => {
         WSMyChannelList();
     }, []);
 
-    console.log('myChannelList', myChannelList);
     const selectChannel = (channelId: string) => {
-        setChannelCurrentId(channelId);
+        navigate(`/my-channels/${channelId}`);
     }
 
-    const renderChannelList = () => {
+    const renderChannelList = useMemo(() => {
+        console.log('renderChannelList')
         return myChannelList.map((channel) => {
             return (
-                <ChannelCard channel={channel} view={(channelId: string) => selectChannel(channelId)}/>
+                <ChannelCard key={channel.id} channel={channel} view={(channelId: string) => selectChannel(channelId)}/>
             )
         });
-    }
+    }, [myChannelList]);
+
     return (
         <section className={'common-section'}>
-            { renderChannelList() }
+            <h1 className={'font-bold text-2xl'}>My Channel List</h1>
+            { renderChannelList }
         </section>
     );
 };

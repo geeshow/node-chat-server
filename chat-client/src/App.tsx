@@ -15,8 +15,8 @@ function App() {
     return (
         <RecoilRoot>
             <BrowserRouter>
-                <DefaultLayout>
-                    <WebSocketProvider host={WS_URL}>
+                <WebSocketProvider host={WS_URL}>
+                    <DefaultLayout>
                         <Suspense fallback={<div>Loading...</div>}>
                             <Routes>
                                 <Route path="/" element={<MyInfo/>}/>
@@ -29,8 +29,8 @@ function App() {
                                 {/* 여기에 다른 경로를 추가하세요 */}
                             </Routes>
                         </Suspense>
-                    </WebSocketProvider>
-                </DefaultLayout>
+                    </DefaultLayout>
+                </WebSocketProvider>
             </BrowserRouter>
         </RecoilRoot>
     );

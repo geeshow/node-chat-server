@@ -5,7 +5,7 @@ import WebSocketHandler from "./socket/WebSocketHandler";
 const wss = new WebSocketServer({ port: config.port })
 wss.on('connection', (ws, request) => {
     try {
-        const token = request.headers['sec-websocket-protocol'] as string;
+        const token = request.url?.split('=')[1] ?? '';
         console.log("token: ", token);
         new WebSocketHandler(ws, token);
     } catch (e) {

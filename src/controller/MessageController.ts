@@ -13,7 +13,7 @@ import {MessageItem} from "../repository/ChannelMessageRepository";
 import {
     RequestChangeUser,
     RequestCreateChannel, RequestGetMessageChannel, RequestJoinChannel, RequestLeaveChannel,
-    RequestLogin, RequestSendMessageChannel,
+    RequestLogin, RequestMyChannelView, RequestSendMessageChannel,
     RequestSignup,
     RequestViewChannel
 } from "../dto/RequestDto";
@@ -24,7 +24,7 @@ import {
     ResponseGetMessageChannel,
     ResponseJoinChannel,
     ResponseLeaveChannel,
-    ResponseLogin,
+    ResponseLogin, ResponseMyChannelView,
     ResponseMyInfo,
     ResponseSendMessageChannel,
     ResponseSignup,
@@ -117,6 +117,12 @@ class MessageController extends WebsocketController {
                 this.sendTelegram(uid, type, result);
                 break;
             }
+            case 'MyChannelView':
+            {
+                const result = this.myChannelView(payload as RequestMyChannelView);
+                this.sendTelegram(uid, type, result as ResponseMyChannelView);
+                break;
+            }
             default:
                 console.warn(`Unknown message type: ${type}`);
                 break;
@@ -131,7 +137,7 @@ class MessageController extends WebsocketController {
         const {user, auth} = this.userService.signupUser(payload.id, payload.password);
 
         this.currentUser = user;
-        this.addConnectionUserList(auth.password, this);
+        this.addConnectionUserList(user.id, this);
         return {
             token: auth.password,
             user: user
@@ -144,7 +150,7 @@ class MessageController extends WebsocketController {
 
         const { user, auth } = this.userService.loginUser(payload.id, payload.password);
         this.currentUser = user;
-        this.addConnectionUserList(auth.password, this);
+        this.addConnectionUserList(user.id, this);
         return {
             token: auth.password,
             user: user
@@ -155,7 +161,7 @@ class MessageController extends WebsocketController {
         const userData = this.userService.getUserByToken(token);
         if (userData !== null) {
             this.currentUser = userData.user;
-            this.addConnectionUserList(token, this);
+            this.addConnectionUserList(userData.user.id, this);
             const payload = {
                 token: token,
                 user: userData.user
@@ -270,7 +276,34 @@ class MessageController extends WebsocketController {
         }
     }
 
+    private myChannelView(payload: RequestMyChannelView) : ResponseMyChannelView {
+        if (this.currentUser === null)
+            throw new Error('Not found current user. Cannot get my channel list.')
 
+        const result = this.channelService.getChannelWithUserList(payload.channelId)
+        if (result === null)
+            throw new Error('Not found channel. Cannot get my channel list.')
+
+        if (result.userList.filter((user) => user.id === this.currentUser?.id).length === 0)
+            throw new Error('Not joined channel. Cannot get my channel list.')
+
+        const messageList =
+            this.channelMessageService.getMessageFrom(payload.channelId, '', config.messageSize)
+
+        return {
+            channel: result.channel,
+            userList: result.userList,
+            messageList: messageList.map((messageItem: MessageItem) => {
+                return {
+                    channelId: payload.channelId,
+                    type: messageItem.type,
+                    content: messageItem.content,
+                    userId: messageItem.userId,
+                    date: messageItem.date
+                } as MessageDto
+            })
+        }
+    }
 
     private broadcastInChannel(uid: string, type: string, channelId: string, payload: any = null) {
         const channel = this.channelService.getChannel(channelId)
