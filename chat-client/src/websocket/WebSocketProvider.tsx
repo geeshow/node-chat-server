@@ -13,6 +13,7 @@ import {
     ResponseChannelList,
     ResponseCreateChannel,
     ResponseJoinChannel,
+    ResponseLeaveChannel,
     ResponseLogin,
     ResponseMyChannelList,
     ResponseMyChannelView,
@@ -20,137 +21,22 @@ import {
     ResponseSignup,
     ResponseViewChannel
 } from "../../../src/dto/ResponseDto";
-import {
-    RequestChangeUser,
-    RequestCreateChannel,
-    RequestJoinChannel,
-    RequestLeaveChannel,
-    RequestLogin,
-    RequestMyChannelView,
-    RequestSendMessageChannel,
-    RequestSignup,
-    RequestViewChannel
-} from "../../../src/dto/RequestDto";
-import {WebSocketContextType} from "./WebSocketContextType";
 import useWebSocket from "../hooks/useWebSocket";
 import useLocalStorage from "../hooks/useLocalStorage";
+import {WebSocketRequest} from "./WebSocketRequest";
 
 const WebSocketContext : any = createContext(null);
+
 
 export const WebSocketProvider = ({ host, children }: any) => {
     const [user, setUser] = useRecoilState(userState);
     const setChannelList = useSetRecoilState(channelListState);
     const setMyChannelList = useSetRecoilState(myChannelListState);
-    const setCurrentChannel = useSetRecoilState(currentChannelState);
-    const setCurrentEnterChannel = useSetRecoilState(currentEnterChannelState);
+    const [, setCurrentChannel] = useRecoilState(currentChannelState);
+    const [currentEnterChannel, setCurrentEnterChannel] = useRecoilState(currentEnterChannelState);
     const setLastMessage = useSetRecoilState(lastMessageState);
     const [token, setToken] = useLocalStorage('token', '');
     const { messages, sendMessage } = useWebSocket(host);
-
-    const request = {
-        WSPing: () => {
-            sendMessage({
-                type: "Ping",
-                payload: null
-            });
-        },
-        WSSignupUser: (id: string, password: string) => {
-            sendMessage({
-                type: "SignupUser",
-                payload: {
-                    id, password
-                } as RequestSignup
-            });
-        },
-        WSLoginUser: (id: string, password: string) => {
-            sendMessage({
-                type: "LoginUser",
-                payload: {
-                    id, password
-                } as RequestLogin
-            });
-        },
-        WSChangeUser: (nickname: string, emoji: string) => {
-            sendMessage({
-                type: "ChangeUser",
-                payload: {
-                    nickname, emoji
-                } as RequestChangeUser
-            });
-        },
-        WSMyInfo: () => {
-            sendMessage({
-                type: "MyInfo",
-                payload: null
-            });
-        },
-        WSChannelCreate: (channelName: string) => {
-            sendMessage({
-                type: "ChannelCreate",
-                payload: {
-                    channelName
-                } as RequestCreateChannel
-            });
-        },
-        WSChannelList: () => {
-            sendMessage({
-                type: "ChannelList",
-                payload: null
-            });
-        },
-        WSChannelView: (channelId: string) => {
-            sendMessage({
-                type: "ChannelView",
-                payload: {
-                    channelId
-                } as RequestViewChannel
-            });
-        },
-        WSChannelJoin: (channelId: string) => {
-            sendMessage({
-                type: "ChannelJoin",
-                payload: {
-                    channelId
-                } as RequestJoinChannel
-            });
-        },
-        WSChannelLeave: (channelId: string) => {
-            sendMessage({
-                type: "ChannelLeave",
-                payload: {
-                    channelId
-                } as RequestLeaveChannel
-            });
-        },
-        WSChannelSendMessage: (channelId: string, message: string) => {
-            sendMessage({
-                type: "ChannelSendMessage",
-                payload: {
-                    channelId, message
-                } as RequestSendMessageChannel
-            });
-        },
-        WSChannelGetMessage(channelId: string) {
-            sendMessage({
-                type: "ChannelGetMessage",
-                payload: null
-            });
-        },
-        WSMyChannelList: () => {
-            sendMessage({
-                type: "MyChannelList",
-                payload: null
-            });
-        },
-        WSMyChannelView: (channelId: string) => {
-            sendMessage({
-                type: "MyChannelView",
-                payload: {
-                    channelId
-                } as RequestMyChannelView
-            });
-        }
-    } as WebSocketContextType
 
     useEffect(() => {
         if (messages.length === 0) return;
@@ -161,8 +47,10 @@ export const WebSocketProvider = ({ host, children }: any) => {
                 type: "Pong",
                 payload: null
             });
+            return;
         }
-        else if (receivedData.type === "SignupUser") {
+
+        if (receivedData.type === "SignupUser") {
             const response = receivedData.payload as ResponseSignup;
             setUser(response.user);
             setToken(response.token);
@@ -196,22 +84,48 @@ export const WebSocketProvider = ({ host, children }: any) => {
         }
         else if (receivedData.type === "ChannelJoin") {
             const response = receivedData.payload as ResponseJoinChannel;
-            if (response.user.id === user.id) {
-                alert(response.message.content);
-                setCurrentChannel((prevChannel) => {
-                    const newChannel = {
+            if (response.user.id === user.id || response.message.channelId === currentEnterChannel.channel.id) {
+                setCurrentEnterChannel((prevChannel) => {
+                    return {
                         channel: {
                             ...prevChannel.channel
                         },
                         userList: [
                             ...prevChannel.userList,
                             response.user
-                        ]
+                        ],
+                        messageList: [...prevChannel.messageList, response.message]
                     };
-                    console.log('test')
-                    return newChannel;
                 });
+            }
+
+            if (response.user.id === user.id) {
                 setMyChannelList((prevChannelList) => [...prevChannelList, response.channel]);
+            }
+        }
+        else if (receivedData.type === "ChannelLeave") {
+            const response = receivedData.payload as ResponseLeaveChannel;
+            const leaveChannel = response.channel;
+            const leaveUser = response.user;
+
+            if (leaveUser.id === user.id) {
+                setMyChannelList((prevChannelList) =>
+                    [...prevChannelList.filter((channel) => channel.id !== leaveChannel.id)]
+                );
+            }
+            else if (leaveChannel.id === currentEnterChannel.channel.id) {
+                setCurrentEnterChannel((prevChannel) => {
+                    console.log('ChannelLeave1', prevChannel.userList)
+                    const userList = prevChannel.userList.filter((joinUser) => joinUser.id !== leaveUser.id);
+                    console.log('ChannelLeave2', userList);
+                    return {
+                        channel: {
+                            ...prevChannel.channel
+                        },
+                        userList: userList,
+                        messageList: [...prevChannel.messageList, response.message]
+                    };
+                });
             }
         }
         else if (receivedData.type === "MyChannelList") {
@@ -224,12 +138,16 @@ export const WebSocketProvider = ({ host, children }: any) => {
         }
         else if (receivedData.type === "ChannelSendMessage") {
             const response = receivedData.payload as ResponseSendMessageChannel;
-            setLastMessage(response.message);
+            if (response.message.channelId === currentEnterChannel.channel.id) {
+                setLastMessage(response.message);
+            }
         }
         else if (receivedData.type === "error") {
             alert(receivedData.payload.message);
         }
     }, [messages]);
+
+    const request = WebSocketRequest(sendMessage);
 
     return (
         <WebSocketContext.Provider value={request}>

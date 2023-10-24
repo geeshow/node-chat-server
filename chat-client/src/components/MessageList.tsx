@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {MessageDto, UserDto} from "../../../src/dto/DefaultDto";
 import MessageLine from "./MessageLine";
 
@@ -13,7 +13,7 @@ const MessageList:React.FC<MyChannelChattingProps> = ({ userList, messageList })
         const container = messagesEndRef.current;
         if (!container) return false;
 
-        const tolerance = 30;  // 이 값을 조정하여 허용 범위를 변경할 수 있습니다.
+        const tolerance = 100;  // You can change the tolerance value to change the allowable range.
         return (container.scrollHeight - container.scrollTop - tolerance) <= container.clientHeight;
     };
 
@@ -25,7 +25,11 @@ const MessageList:React.FC<MyChannelChattingProps> = ({ userList, messageList })
         }
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
+        scrollToBottom();
+    }, [messageList]);
+
+    useEffect(() => {
         if (isScrolledToBottom()) {
             scrollToBottom();
         }

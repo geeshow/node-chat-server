@@ -27,11 +27,12 @@ const ChannelView:React.FC<ChannelViewProps> = ({ channelId }) => {
     const joinChannel = () => {
         console.log('channelId', channelId);
         WSChannelJoin(channelId); // after response join channel, move to my channel view
-        setDoEnterChannel(true);
+        navigate(`/my-channels/${channelId}`);
     }
 
     const enterChannel = () => {
-        setDoEnterChannel(true);
+        navigate(`/my-channels/${channelId}`);
+        // setDoEnterChannel(true);
     }
 
     useEffect(() => {

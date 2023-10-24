@@ -5,13 +5,14 @@ import WebSocketContext from "../../websocket/WebSocketProvider";
 import {WebSocketContextType} from "../../websocket/WebSocketContextType";
 import MyChannelTitle from "./MyChannelTitle";
 import MyChannelUserList from "./MyChannelUserList";
-import {useRecoilValue} from "recoil";
-import {currentEnterChannelState} from "../../store/recoilState";
+import {useRecoilState, useRecoilValue} from "recoil";
+import {currentEnterChannelState, isEnterChannelState} from "../../store/recoilState";
 import MyChannelChat from "./MyChannelChat";
 
 const MyChannel = () => {
     const { channelId } = useParams();
     const currentChannel = useRecoilValue(currentEnterChannelState);
+    const [isEnterChannel, setEnterChannel] = useRecoilState(isEnterChannelState);
     const { WSMyChannelView } = useContext(WebSocketContext) as WebSocketContextType;
 
     useEffect(() => {
@@ -25,10 +26,10 @@ const MyChannel = () => {
             <div className={'flex flex-row h-full'}>
                 <MyChannelList />
                 <div className={'common-section w-96 h-full'}>
-                    { currentChannel.channel &&
+                    { isEnterChannel &&
                         <MyChannelTitle channel={currentChannel.channel} />
                     }
-                    { currentChannel.channel &&
+                    { isEnterChannel &&
                         <MyChannelChat
                             channel={currentChannel.channel}
                             userList={currentChannel.userList}
@@ -36,9 +37,7 @@ const MyChannel = () => {
                     }
                 </div>
                 <div className={'common-section w-40'}>
-                    { currentChannel.channel &&
-                        <MyChannelUserList hostUserId={currentChannel.channel.host.id} userList={currentChannel.userList} />
-                    }
+                    <MyChannelUserList />
                 </div>
             </div>
         </div>

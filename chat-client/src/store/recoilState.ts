@@ -1,5 +1,5 @@
 import { atom, selector } from "recoil";
-import {ChannelDto, UserDto} from "../../../src/dto/DefaultDto";
+import {ChannelDto, MessageDto, UserDto} from "../../../src/dto/DefaultDto";
 import {ResponseMyChannelView, ResponseViewChannel} from "../../../src/dto/ResponseDto";
 
 export const requestWsState = atom({
@@ -43,9 +43,39 @@ export const myChannelListState = atom({
     default: [] as ChannelDto[]
 });
 
+const initCurrentEnterChannelState = {
+    channel: {
+        id: ''
+    } as ChannelDto,
+    userList: [] as UserDto[],
+    messageList: [] as MessageDto[]
+} as ResponseMyChannelView;
+
 export const currentEnterChannelState = atom({
     key: "currentEnterChannelState",
-    default: {} as ResponseMyChannelView
+    default: {
+        channel: {
+            id: ''
+        } as ChannelDto,
+        userList: [] as UserDto[],
+        messageList: [] as MessageDto[]
+    } as ResponseMyChannelView
+});
+export const isEnterChannelState = selector({
+    key: "isEnterChannelState",
+    get: ({ get }) => {
+        const currentChannel = get(currentEnterChannelState);
+        return currentChannel.channel.id !== '';
+    },
+    set: ({ set }) => {
+        set(currentEnterChannelState, (prevChannel) => ({
+            channel: {
+                id: ''
+            } as ChannelDto,
+            userList: [] as UserDto[],
+            messageList: [] as MessageDto[]
+        } as ResponseMyChannelView));
+    }
 });
 
 export const lastMessageState = selector({
@@ -57,7 +87,8 @@ export const lastMessageState = selector({
     set: ({ set }, newMessage) => {
         set(currentEnterChannelState, (prevChannel) => ({
             ...prevChannel,
-            messageList: [...prevChannel.messageList, newMessage]
+            messageList: prevChannel.messageList ? [...prevChannel.messageList, newMessage] : [newMessage]
         } as ResponseMyChannelView));
     }
 });
+

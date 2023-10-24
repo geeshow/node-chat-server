@@ -99,6 +99,7 @@ class MessageController extends WebsocketController {
             case 'ChannelLeave': {
                 const result = this.channelLeave(payload as RequestLeaveChannel);
                 this.broadcastInChannel(uid, type, payload.channelId, result as ResponseLeaveChannel)
+                this.sendTelegram(uid, type, result);
                 break;
             }
             case 'ChannelSendMessage': {
@@ -228,7 +229,7 @@ class MessageController extends WebsocketController {
     }
 
     private channelLeave(payload: RequestLeaveChannel): ResponseLeaveChannel {
-        this.channelService.leaveChannel(this.currentUser, payload as RequestLeaveChannel);
+        this.channelService.leaveChannel(this.currentUser, payload.channelId);
         const { channel, userList} = this.channelService.getChannelWithUserList(payload.channelId)
         const leaveChannelMessage = this.channelMessageService.leaveChannelMessage(this.currentUser!, payload.channelId);
         return {
@@ -284,8 +285,10 @@ class MessageController extends WebsocketController {
         if (result === null)
             throw new Error('Not found channel. Cannot get my channel list.')
 
-        if (result.userList.filter((user) => user.id === this.currentUser?.id).length === 0)
+        if (result.userList.filter((user) => user.id === this.currentUser?.id).length === 0) {
+            this.channelService.leaveChannel(this.currentUser, payload.channelId)
             throw new Error('Not joined channel. Cannot get my channel list.')
+        }
 
         const messageList =
             this.channelMessageService.getMessageFrom(payload.channelId, '', config.messageSize)

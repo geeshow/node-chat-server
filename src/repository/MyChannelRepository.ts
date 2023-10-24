@@ -13,4 +13,11 @@ export class MyChannelRepository extends MapRepository<MyChannel> {
     constructor() {
         super(dataList);
     }
+
+    public deleteMyChannel(userId: string, channelId: string) {
+        const myChannel = this.findOneById(userId + channelId);
+        if (myChannel) {
+            this.delete(myChannel.id);
+        }
+    }
 }

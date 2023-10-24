@@ -12,6 +12,9 @@ class ChannelService {
     channelRepository: ChannelRepository = new ChannelRepository();
     myChannelRepository: MyChannelRepository = new MyChannelRepository();
 
+    public getMyChannelId(userId: string, channelId: string) {
+        return `${userId}_${channelId}`;
+    }
     public createChannel(myInfo: User, channelName: string) {
         const channelId = myInfo.id + Date.now();
         const channel = this.channelRepository.findOneById(channelId)
@@ -48,7 +51,7 @@ class ChannelService {
                 throw new Error('Already joined channel')
             }
             this.myChannelRepository.create({
-                id: myInfo.id + Date.now(),
+                id: this.getMyChannelId(myInfo.id, channelId),
                 userId: myInfo.id,
                 channelId: channelId
             } as MyChannel);
@@ -57,11 +60,11 @@ class ChannelService {
         }
     }
 
-    public leaveChannel(myInfo: User | null, payload: RequestLeaveChannel) {
+    public leaveChannel(myInfo: User | null, channelId: string) {
         if (myInfo === null)
             throw new Error('myInfo is null. Cannot leave channel')
 
-        const channel = this.channelRepository.findOneById(payload.channelId)
+        const channel = this.channelRepository.findOneById(channelId)
         if (!channel) {
             throw new Error('Channel data not found. Cannot leave channel')
         } else {
@@ -70,7 +73,8 @@ class ChannelService {
             if (index > -1) {
                 channel.userIdList.splice(index, 1)
             }
-            this.myChannelRepository.deleteOne('channelId', payload.channelId)
+            const myChannelId = this.getMyChannelId(myInfo.id, channelId)
+            this.myChannelRepository.delete(myChannelId)
 
             return {
                 id: channel.id,
