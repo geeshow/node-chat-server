@@ -41,11 +41,8 @@ jobs:
       - name: Generate deployment package
         run: |
             yarn install
-            yarn build
-            mkdir -p deploy
-            zip -r deploy/deploy.zip . -x "node_modules/*" -x "deploy/*" -x ".git/*" -x ".github/*" -x "yarn.lock" -x "package.json" -x "package-lock.json" -x "tsconfig.json" -x "tsconfig.build.json" -x
-
-        # Beanstalk Deploy 플러그인 사용
+            zip -r deploy.zip .
+          
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v21
         with:
