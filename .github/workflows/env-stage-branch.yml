@@ -9,7 +9,6 @@ jobs:
   call-common-deploy-to-ecs:
     uses: ./.github/workflows/common-deploy-to-eb.yml
     with:
-      ACTIVE_PROFILES: stage
       application_name: node-chat
       environment_name: Node-chat-env-2
     secrets:

@@ -9,7 +9,8 @@ jobs:
   call-common-deploy-to-ecs:
     uses: ./.github/workflows/common-deploy-to-eb.yml
     with:
-      ACTIVE_PROFILES: live
+      application_name: node-chat
+      environment_name: Node-chat-env-2
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.REPO_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.REPO_AWS_SECRET_ACCESS_KEY }}
