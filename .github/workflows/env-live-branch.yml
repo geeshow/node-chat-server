@@ -1,0 +1,17 @@
+name: LIVE Deploy NODE-CHAT-SERVER to Amazon ECR
+
+on:
+  push:
+    branches:
+      - live
+
+jobs:
+  call-common-deploy-to-ecs:
+    uses: ./.github/workflows/common-deploy-to-eb.yml
+    with:
+      ACTIVE_PROFILES: live
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.REPO_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.REPO_AWS_SECRET_ACCESS_KEY }}
+
+
