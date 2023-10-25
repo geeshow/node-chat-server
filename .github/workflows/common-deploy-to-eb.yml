@@ -3,9 +3,6 @@ name: Deploy NODE-CHAT-SERVER to Amazon ECR
 on:
   workflow_call:
     inputs:
-      application_path:
-        required: true
-        type: string
       application_name:
         required: true
         type: string
