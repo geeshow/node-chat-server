@@ -40,9 +40,8 @@ jobs:
 
       - name: Generate deployment package
         run: |
-            yarn install
-            zip -r deploy.zip .
-          
+          zip -r deploy.zip .
+
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v21
         with:
@@ -52,4 +51,4 @@ jobs:
           environment_name: ${{ inputs.environment_name }}    # EB environment 이름
           version_label: ${{ github.run_number }}
           region: ap-northeast-2
-          deployment_package: deploy/deploy.zip
+          deployment_package: deploy.zip
