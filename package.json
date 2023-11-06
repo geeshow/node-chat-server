@@ -6,7 +6,7 @@
   "scripts": {
     "client": "cd chat-client && npm start",
     "server": "ts-node src/app.ts",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "start": "concurrently \"npm run server\" \"npm run client\""
   },
   "author": "ken2484@gmail.com",
   "license": "MIT",
