@@ -1,5 +1,5 @@
 {
-  "port": 8001,
+  "port": 5000,
   "connectionCheckTimes": 3,
   "connectionCheckInterval": 10000,
   "messageSize": 100
