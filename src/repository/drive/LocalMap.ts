@@ -4,12 +4,12 @@ export class LocalMap<T> implements IRepository<T> {
     static dataSet: Map<string, any> = new Map<string, any>();
     private dataList: Map<string, T>;
 
-    constructor() {
-        if (LocalMap.dataSet.has(this.constructor.name)) {
-            this.dataList = LocalMap.dataSet.get(this.constructor.name);
+    constructor(repositoryName: string) {
+        if (LocalMap.dataSet.has(repositoryName)) {
+            this.dataList = LocalMap.dataSet.get(repositoryName);
         } else {
             this.dataList = new Map<string, T>();
-            LocalMap.dataSet.set(this.constructor.name, this.dataList);
+            LocalMap.dataSet.set(repositoryName, this.dataList);
         }
     }
 

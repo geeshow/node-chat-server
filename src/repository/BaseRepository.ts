@@ -23,7 +23,7 @@ export class BaseRepository<T> implements IRepository<T> {
     private drive: LocalMap<T>;
 
     constructor() {
-        this.drive = new LocalMap<T>()
+        this.drive = new LocalMap<T>(this.constructor.name)
     }
 
     findOneById(id: string): T | null {
