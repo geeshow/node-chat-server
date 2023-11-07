@@ -3,7 +3,6 @@ import {
 } from "../dto/DefaultDto";
 import {Channel, ChannelRepository} from "../repository/ChannelRepository";
 import {User, UserRepository} from "../repository/UserRepository";
-import {RequestCreateChannel, RequestJoinChannel, RequestLeaveChannel, RequestViewChannel} from "../dto/RequestDto";
 import {MyChannel, MyChannelRepository} from "../repository/MyChannelRepository";
 
 
@@ -15,9 +14,9 @@ class ChannelService {
     public getMyChannelId(userId: string, channelId: string) {
         return `${userId}_${channelId}`;
     }
-    public createChannel(myInfo: User, channelName: string) {
+    public async createChannel(myInfo: User, channelName: string) {
         const channelId = myInfo.id + Date.now();
-        const channel = this.channelRepository.findOneById(channelId)
+        const channel = await this.channelRepository.findOneById(channelId)
         if (channel) {
             throw new Error('Channel. already exists');
         } else {
@@ -27,9 +26,9 @@ class ChannelService {
                 hostUserId: myInfo.id,
                 userIdList: [myInfo.id],
             } as Channel
-            this.channelRepository.create(newChannel);
+            await this.channelRepository.create(newChannel);
 
-            this.myChannelRepository.create({
+            await this.myChannelRepository.create({
                 id: myInfo.id + Date.now(),
                 userId: myInfo.id,
                 channelId: channelId
@@ -42,39 +41,42 @@ class ChannelService {
             } as ChannelDto
         }
     }
-    public joinChannel(myInfo: User, channelId: string) {
-        const channel = this.channelRepository.findOneById(channelId)
+    public async joinChannel(myInfo: User, channelId: string) {
+        const channel = await this.channelRepository.findOneById(channelId)
         if (!channel) {
             throw new Error('Channel data not found. Cannot join channel')
         } else {
             if (channel.userIdList.indexOf(myInfo.id) > -1) {
                 throw new Error('Already joined channel')
             }
-            this.myChannelRepository.create({
+            await this.myChannelRepository.create({
                 id: this.getMyChannelId(myInfo.id, channelId),
                 userId: myInfo.id,
                 channelId: channelId
             } as MyChannel);
+
             channel.userIdList.push(myInfo.id)
+            await this.channelRepository.update(channel)
+
             return channel
         }
     }
 
-    public leaveChannel(myInfo: User | null, channelId: string) {
+    public async leaveChannel(myInfo: User | null, channelId: string) {
         if (myInfo === null)
             throw new Error('myInfo is null. Cannot leave channel')
 
-        const channel = this.channelRepository.findOneById(channelId)
+        const channel = await this.channelRepository.findOneById(channelId)
         if (!channel) {
             throw new Error('Channel data not found. Cannot leave channel')
         } else {
-            const host = this.userRepository.findOneById(channel.hostUserId)
+            const host = await this.userRepository.findOneById(channel.hostUserId)
             const index = channel.userIdList.indexOf(myInfo.id)
             if (index > -1) {
                 channel.userIdList.splice(index, 1)
             }
             const myChannelId = this.getMyChannelId(myInfo.id, channelId)
-            this.myChannelRepository.delete(myChannelId)
+            await this.myChannelRepository.delete(myChannelId)
 
             return {
                 id: channel.id,
@@ -84,30 +86,30 @@ class ChannelService {
         }
     }
 
-    public getAllChannelList(): ChannelDto[] {
-        const list = this.channelRepository.listAll()
+    public async getAllChannelList() {
+        const list = await this.channelRepository.listAll()
         const result = []
         for (let i = 0; i < list.length; i++) {
             result.push(
-                this.bindChannel(list[i])
+                await this.bindChannel(list[i])
             )
         }
         return result as ChannelDto[]
     }
-    public getMyChannelList(user: User): ChannelDto[] {
-        const myChannelIds = this.myChannelRepository.find('userId', user.id)
-        const list = this.channelRepository.listByIds(myChannelIds.map((myChannel) => myChannel.channelId))
+    public async getMyChannelList(user: User) {
+        const myChannelIds = await this.myChannelRepository.find('userId', user.id)
+        const list = await this.channelRepository.listByIds(myChannelIds.map((myChannel) => myChannel.channelId))
         const result = []
         for (let i = 0; i < list.length; i++) {
             result.push(
-                this.bindChannel(list[i])
+                await this.bindChannel(list[i])
             )
         }
         return result as ChannelDto[]
     }
 
-    private bindChannel(channel: Channel) {
-        const host = this.userRepository.findOneById(channel.hostUserId)
+    private async bindChannel(channel: Channel) {
+        const host = await this.userRepository.findOneById(channel.hostUserId)
         if (!host) {
             throw new Error('Host not found')
         }
@@ -117,19 +119,19 @@ class ChannelService {
             host: host as UserDto
         }
     }
-    public getChannelWithUserList(channelId: string) {
-        const channel = this.channelRepository.findOneById(channelId)
+    public async getChannelWithUserList(channelId: string) {
+        const channel = await this.channelRepository.findOneById(channelId)
         if (!channel) {
             throw new Error('Channel data not found. Cannot get channel with user list');
         }
-        const host = this.userRepository.findOneById(channel.hostUserId)
+        const host = await this.userRepository.findOneById(channel.hostUserId)
         if (!host) {
             throw new Error('Host not found')
         }
         const userList = [] as UserDto[]
         for (let i = 0; i < channel.userIdList.length; i++) {
             const userId = channel.userIdList[i];
-            const user = this.userRepository.findOneById(userId)
+            const user = await this.userRepository.findOneById(userId)
             if (!user) {
                 throw new Error('User not found')
             }
@@ -145,8 +147,8 @@ class ChannelService {
             userList: userList as UserDto[]
         }
     }
-    public getChannel(channelId: string) {
-        const channel = this.channelRepository.findOneById(channelId)
+    public async getChannel(channelId: string) {
+        const channel = await this.channelRepository.findOneById(channelId)
         if (!channel) {
             throw new Error('Channel data not found. Cannot get channel')
         }

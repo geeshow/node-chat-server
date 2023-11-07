@@ -9,8 +9,4 @@ export class UserAuthRepository extends BaseRepository<UserAuth> {
     constructor() {
         super();
     }
-
-    public findOneByPassword(password: string) {
-        return this.findOne('password', password);
-    }
 }

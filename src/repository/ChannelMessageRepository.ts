@@ -17,7 +17,7 @@ export class ChannelMessageRepository extends BaseRepository<ChannelMessage> {
         super();
     }
 
-    public init(payload: {channelId: string, type: string, content: string, userId: string}) {
+    public async init(payload: {channelId: string, type: string, content: string, userId: string}) {
         const createMessage = {
             id: payload.channelId,
             message: [{
@@ -27,13 +27,13 @@ export class ChannelMessageRepository extends BaseRepository<ChannelMessage> {
                 userId: payload.userId,
             }]
         } as ChannelMessage
-        this.create(createMessage)
+        await this.create(createMessage)
 
         return createMessage
     }
 
-    public createMessage(payload: {channelId: string, type: string, content: string, userId: string}) {
-        const channelMessage = this.findOneById(payload.channelId)
+    public async createMessage(payload: {channelId: string, type: string, content: string, userId: string}) {
+        const channelMessage = await this.findOneById(payload.channelId)
         if (!channelMessage) {
             throw new Error('Channel. not found')
         }
@@ -46,12 +46,13 @@ export class ChannelMessageRepository extends BaseRepository<ChannelMessage> {
             date: new Date(),
         } as MessageItem
         channelMessage.message.push(newMessage)
+        await this.update(channelMessage)
 
         return newMessage
     }
 
-    lastMessage(payload: { channelId: string, limit: number}): Array<MessageItem> {
-        const channelMessage = this.findOneById(payload.channelId)
+    async lastMessage(payload: { channelId: string, limit: number}) {
+        const channelMessage = await this.findOneById(payload.channelId)
         if (channelMessage) {
             const result = []
             const message = channelMessage.message
@@ -65,8 +66,8 @@ export class ChannelMessageRepository extends BaseRepository<ChannelMessage> {
         }
         return []
     }
-    nextMessage(payload: { channelId: string, fromMessageId: string, limit: number}): Array<MessageItem> {
-        const channelMessage = this.findOneById(payload.channelId)
+    async nextMessage(payload: { channelId: string, fromMessageId: string, limit: number}) {
+        const channelMessage = await this.findOneById(payload.channelId)
         if (channelMessage) {
             const result = []
             for (const message of channelMessage.message) {
@@ -82,8 +83,8 @@ export class ChannelMessageRepository extends BaseRepository<ChannelMessage> {
         return []
     }
 
-    prevMessage(payload: { channelId: string, fromMessageId: string, limit: number}): Array<MessageItem> {
-        const channelMessage = this.findOneById(payload.channelId)
+    async prevMessage(payload: { channelId: string, fromMessageId: string, limit: number}) {
+        const channelMessage = await this.findOneById(payload.channelId)
         if (channelMessage) {
             const result = []
             for (const message of channelMessage.message) {

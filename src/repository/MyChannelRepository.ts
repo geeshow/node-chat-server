@@ -11,10 +11,10 @@ export class MyChannelRepository extends BaseRepository<MyChannel> {
         super();
     }
 
-    public deleteMyChannel(userId: string, channelId: string) {
-        const myChannel = this.findOneById(userId + channelId);
+    public async deleteMyChannel(userId: string, channelId: string) {
+        const myChannel = await this.findOneById(userId + channelId);
         if (myChannel) {
-            this.delete(myChannel.id);
+            await this.delete(myChannel.id);
         }
     }
 }

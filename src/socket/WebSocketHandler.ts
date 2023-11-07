@@ -17,7 +17,7 @@ class WebSocketHandler {
     }
 
     sendMessage(uid: string, type: string, payload: any = null): void {
-        let response = {}
+        let response = null;
         if (payload === null) {
             response = {uid, type}
         } else {
@@ -31,13 +31,13 @@ class WebSocketHandler {
         this.ws.terminate();
     }
 
-    private receiveMessage(message: string): void {
+    private async receiveMessage(message: string) {
         try {
             const parsedMessage = JSON.parse(message) as RequestDto;
             console.log('>>>>>', parsedMessage)
             if (parsedMessage.type) {
                 try {
-                    this.messageController.receiveMessage(parsedMessage.uid, parsedMessage.type, parsedMessage.payload)
+                    await this.messageController.receiveMessage(parsedMessage.uid, parsedMessage.type, parsedMessage.payload)
                 } catch(error: any) {
                     console.error(error);
                     this.sendMessage(parsedMessage.uid, 'error', {message: error.message})

@@ -9,13 +9,12 @@ class UserService {
     private hashPassword(id: string, password: string): string {
         const hash = crypto.createHash('sha256');
         hash.update(id + password + 'salt');
-        return id + hash.digest('hex');
+        return id + '.' + hash.digest('hex');
     }
-    public signupUser(id: string, password: string) {
-        const userAuth = this.userAuthRepository.findOneById(id)
-        const user = this.userRepository.findOneById(id)
+    public async signupUser(id: string, password: string) {
+        const user = await this.userRepository.findOneById(id)
 
-        if (userAuth && user) {
+        if (user) {
             throw new Error('User already exists');
         } else {
             const hashedPassword = this.hashPassword(id, password)
@@ -23,7 +22,7 @@ class UserService {
                 id: id,
                 password: hashedPassword,
             } as UserAuth
-            this.userAuthRepository.create(newUserAuth);
+            await this.userAuthRepository.create(newUserAuth);
 
             const newUser = {
                 id: id,
@@ -31,7 +30,7 @@ class UserService {
                 nickname: id,
                 lastLogin: new Date()
             } as User
-            this.userRepository.create(newUser);
+            await this.userRepository.create(newUser);
 
             return {
                 user: newUser,
@@ -39,14 +38,16 @@ class UserService {
             }
         }
     }
-    public loginUser(id: string, password: string) {
-        const userAuth = this.userAuthRepository.findOneById(id)
-        const user = this.userRepository.findOneById(id)
+    public async loginUser(id: string, password: string) {
+        const userAuth = await this.userAuthRepository.findOneById(id)
+        const user = await this.userRepository.findOneById(id)
 
         if (userAuth && user) {
             const hashedPassword = this.hashPassword(id, password)
             if (userAuth.password === hashedPassword) {
                 user.lastLogin = new Date();
+                await this.userRepository.update(user);
+
                 return {
                     user,
                     auth: userAuth
@@ -58,10 +59,11 @@ class UserService {
             throw new Error('User does not exist');
         }
     }
-    public getUserByToken(token: string) {
-        const userAuth = this.userAuthRepository.findOneByPassword(token)
-        if (userAuth) {
-            const user = this.userRepository.findOneById(userAuth.id)
+    public async getUserByToken(token: string) {
+        const id = token.split('.')[0]
+        const userAuth = await this.userAuthRepository.findOneById(id)
+        if (userAuth && userAuth.password === token) {
+            const user = await this.userRepository.findOneById(userAuth.id)
             if (user) {
                 return {
                     user,
@@ -71,10 +73,11 @@ class UserService {
         }
         return null
     }
-    public changeUser(user: User, nickname: string, emoji: string) {
+    public async changeUser(user: User, nickname: string, emoji: string) {
         if (user) {
             user.nickname = nickname
             user.emoji = emoji
+            await this.userRepository.update(user)
         } else {
             throw new Error('User does not exist');
         }

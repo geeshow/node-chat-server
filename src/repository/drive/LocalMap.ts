@@ -2,7 +2,7 @@ import {BaseEntity, IRepository} from "../BaseRepository";
 
 export class LocalMap<T> implements IRepository<T> {
     static dataSet: Map<string, any> = new Map<string, any>();
-    private dataList: Map<string, T>;
+    readonly dataList: Map<string, T>;
 
     constructor(repositoryName: string) {
         if (LocalMap.dataSet.has(repositoryName)) {
@@ -13,11 +13,11 @@ export class LocalMap<T> implements IRepository<T> {
         }
     }
 
-    findOneById(id: string): T | null {
-        return this.dataList.get(id) ?? null;
+    async findOneById(id: string): Promise<T | null> {
+        return await this.dataList.get(id) ?? null;
     }
 
-    create(data: BaseEntity): T {
+    async create(data: BaseEntity): Promise<T> {
         if (this.dataList.has(data.id)) {
             throw new Error('Already exist data');
         } else {
@@ -25,7 +25,7 @@ export class LocalMap<T> implements IRepository<T> {
         }
         return data as T;
     }
-    delete(id: string): T {
+    async delete(id: string): Promise<T> {
         if (this.dataList.has(id)) {
             const data = this.dataList.get(id)
             this.dataList.delete(id)
@@ -35,7 +35,7 @@ export class LocalMap<T> implements IRepository<T> {
         }
     }
 
-    update(data: BaseEntity): T {
+    async update(data: BaseEntity): Promise<T> {
         if (this.dataList.has(data.id)) {
             this.dataList.set(data.id, data as T);
         } else {
@@ -44,18 +44,18 @@ export class LocalMap<T> implements IRepository<T> {
         return data as T;
     }
 
-    listAll(): Array<T> {
+    async listAll(): Promise<Array<T>> {
         const entries = this.dataList.entries()
         const result = []
-        for (const [key, value] of entries) {
+        for (const [, value] of entries) {
             result.push(value)
         }
         return result
     }
-    listByIds(ids: string[]): Array<T> {
+    async listByIds(ids: string[]): Promise<Array<T>> {
         const entries = this.dataList.entries() as any
         const result = []
-        for (const [key, value] of entries) {
+        for (const [, value] of entries) {
             if (ids.includes(value.id)) {
                 result.push(value)
             }
@@ -63,10 +63,10 @@ export class LocalMap<T> implements IRepository<T> {
         return result
     }
 
-    list(filter: any): Array<T> {
+    async list(filter: any): Promise<Array<T>> {
         const entries = this.dataList.entries()
         const result = []
-        for (const [key, value] of entries) {
+        for (const [, value] of entries) {
             if (filter(value)) {
                 result.push(value)
             }
@@ -74,19 +74,19 @@ export class LocalMap<T> implements IRepository<T> {
         return result
     }
 
-    findOne(findKey: string, findValue: string): T | null {
+    async findOne(findKey: string, findValue: string): Promise<T | null> {
         const entries = this.dataList.entries() as any
-        for (const [key, value] of entries) {
+        for (const [, value] of entries) {
             if (value[findKey] === findValue) {
                 return value;
             }
         }
         return null
     }
-    find(findKey: string, findValue: string): Array<T> {
+    async find(findKey: string, findValue: string): Promise<Array<T>> {
         const entries = this.dataList.entries() as any
         const result = []
-        for (const [key, value] of entries) {
+        for (const [, value] of entries) {
             if (value[findKey] === findValue) {
                 result.push(value)
             }
@@ -94,7 +94,7 @@ export class LocalMap<T> implements IRepository<T> {
         return result
     }
 
-    deleteOne(findKey: string, findValue: string): T | null {
+    async deleteOne(findKey: string, findValue: string): Promise<T | null> {
         const entries = this.dataList.entries() as any
         for (const [key, value] of entries) {
             if (value[findKey] === findValue) {
