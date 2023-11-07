@@ -1,4 +1,4 @@
-import {BaseEntity, MapRepository} from "./BaseRepository";
+import {BaseEntity, BaseRepository} from "./BaseRepository";
 
 export interface User extends BaseEntity {
     id: string;
@@ -6,11 +6,9 @@ export interface User extends BaseEntity {
     nickname: string;
     lastLogin: Date;
 }
-const dataList = new Map();
 
-export class UserRepository extends MapRepository<User> {
+export class UserRepository extends BaseRepository<User> {
     constructor() {
-        super(dataList);
+        super();
     }
-
 }

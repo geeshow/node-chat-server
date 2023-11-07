@@ -1,15 +1,13 @@
-import {BaseEntity, MapRepository} from "./BaseRepository";
+import {BaseEntity, BaseRepository} from "./BaseRepository";
 
 export interface UserAuth extends BaseEntity {
     id: string;
     password: string;
 }
 
-const dataList = new Map();
-
-export class UserAuthRepository extends MapRepository<UserAuth> {
+export class UserAuthRepository extends BaseRepository<UserAuth> {
     constructor() {
-        super(dataList);
+        super();
     }
 
     public findOneByPassword(password: string) {

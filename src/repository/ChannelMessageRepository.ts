@@ -1,4 +1,4 @@
-import {BaseEntity, MapRepository} from "./BaseRepository";
+import {BaseEntity, BaseRepository} from "./BaseRepository";
 
 export interface MessageItem {
     id: string;
@@ -12,11 +12,9 @@ export interface ChannelMessage extends BaseEntity {
     message: [MessageItem]
 }
 
-const dataList = new Map();
-
-export class ChannelMessageRepository extends MapRepository<ChannelMessage> {
+export class ChannelMessageRepository extends BaseRepository<ChannelMessage> {
     constructor() {
-        super(dataList);
+        super();
     }
 
     public init(payload: {channelId: string, type: string, content: string, userId: string}) {

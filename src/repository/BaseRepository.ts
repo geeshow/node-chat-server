@@ -1,105 +1,65 @@
+import {LocalMap} from "./drive/LocalMap";
+
 export interface BaseEntity {
     id: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
-export class MapRepository<T> {
-    private dataList: Map<string, T>;
+export interface IRepository<T> {
+    findOneById(id: string): T | null;
+    create(data: BaseEntity): T;
+    delete(id: string): T;
+    update(data: BaseEntity): T;
+    listAll(): Array<T>;
+    listByIds(ids: string[]): Array<T>;
+    list(filter: any): Array<T>;
+    findOne(findKey: string, findValue: string): T | null;
+    find(findKey: string, findValue: string): Array<T>;
+    deleteOne(findKey: string, findValue: string): T | null;
+}
 
-    constructor(dataList: Map<string, T>) {
-        this.dataList = dataList as Map<string, T>;
+export class BaseRepository<T> implements IRepository<T> {
+    private drive: LocalMap<T>;
+
+    constructor() {
+        this.drive = new LocalMap<T>()
     }
 
     findOneById(id: string): T | null {
-        return this.dataList.get(id) ?? null;
+        return this.drive.findOneById(id)
     }
 
     create(data: BaseEntity): T {
-        if (this.dataList.has(data.id)) {
-            throw new Error('Already exist data');
-        } else {
-            this.dataList.set(data.id, data as T);
-        }
-        return data as T;
+        return this.drive.create(data)
     }
     delete(id: string): T {
-        if (this.dataList.has(id)) {
-            const data = this.dataList.get(id)
-            this.dataList.delete(id)
-            return data as T
-        } else {
-            throw new Error('Not exist data');
-        }
+        return this.drive.delete(id)
     }
 
     update(data: BaseEntity): T {
-        if (this.dataList.has(data.id)) {
-            this.dataList.set(data.id, data as T);
-        } else {
-            throw new Error('Not exist data');
-        }
-        return data as T;
+        return this.drive.update(data)
     }
 
     listAll(): Array<T> {
-        const entries = this.dataList.entries()
-        const result = []
-        for (const [key, value] of entries) {
-            result.push(value)
-        }
-        return result
+        return this.drive.listAll()
     }
     listByIds(ids: string[]): Array<T> {
-        const entries = this.dataList.entries() as any
-        const result = []
-        for (const [key, value] of entries) {
-            if (ids.includes(value.id)) {
-                result.push(value)
-            }
-        }
-        return result
+        return this.drive.listByIds(ids)
     }
 
     list(filter: any): Array<T> {
-        const entries = this.dataList.entries()
-        const result = []
-        for (const [key, value] of entries) {
-            if (filter(value)) {
-                result.push(value)
-            }
-        }
-        return result
+        return this.drive.list(filter)
     }
 
     findOne(findKey: string, findValue: string): T | null {
-        const entries = this.dataList.entries() as any
-        for (const [key, value] of entries) {
-            if (value[findKey] === findValue) {
-                return value;
-            }
-        }
-        return null
+        return this.drive.findOne(findKey, findValue)
     }
     find(findKey: string, findValue: string): Array<T> {
-        const entries = this.dataList.entries() as any
-        const result = []
-        for (const [key, value] of entries) {
-            if (value[findKey] === findValue) {
-                result.push(value)
-            }
-        }
-        return result
+        return this.drive.find(findKey, findValue)
     }
 
     deleteOne(findKey: string, findValue: string): T | null {
-        const entries = this.dataList.entries() as any
-        for (const [key, value] of entries) {
-            if (value[findKey] === findValue) {
-                this.dataList.delete(key)
-                return value;
-            }
-        }
-        return null
+        return this.drive.deleteOne(findKey, findValue)
     }
 }

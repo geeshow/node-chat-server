@@ -1,5 +1,4 @@
-import {BaseEntity, MapRepository} from "./BaseRepository";
-import {User} from "./UserRepository";
+import {BaseEntity, BaseRepository} from "./BaseRepository";
 
 export interface MyChannel extends BaseEntity {
     id: string;
@@ -7,11 +6,9 @@ export interface MyChannel extends BaseEntity {
     channelId: string;
 }
 
-const dataList = new Map();
-
-export class MyChannelRepository extends MapRepository<MyChannel> {
+export class MyChannelRepository extends BaseRepository<MyChannel> {
     constructor() {
-        super(dataList);
+        super();
     }
 
     public deleteMyChannel(userId: string, channelId: string) {

@@ -1,9 +1,9 @@
-name: LIVE Deploy NODE-CHAT-SERVER to Amazon ECR
+name: STAGE Deploy NODE-CHAT-SERVER to Amazon ECR
 
 on:
   push:
     branches:
-      - live
+      - main
 
 jobs:
   call-common-deploy-to-ecs:
